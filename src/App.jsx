@@ -1,25 +1,28 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Profile from "./pages/Profile";
-import PrivateRoute from "./routes/PrivateRoute";
+import React from "react";
+import { useAuth } from "./hooks/useAuth";
+import SignupForm from "./components/SignupForm";
+import LoginForm from "./components/LoginForm";
+import ProtectedPage from "./components/ProtectedPage";
 
 function App() {
+  const { user, signup, login, logout, loading } = useAuth();
+
+  if (loading) return <p>Loading...</p>;
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route
-          path="/profile"
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+    <div>
+      {!user ? (
+        <>
+          <SignupForm onSignup={signup} />
+          <LoginForm onLogin={login} />
+        </>
+      ) : (
+        <>
+          <ProtectedPage user={user} />
+          <button onClick={logout}>Logout</button>
+        </>
+      )}
+    </div>
   );
 }
 
