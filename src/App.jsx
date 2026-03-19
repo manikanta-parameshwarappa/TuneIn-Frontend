@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { Navbar } from "./components/Navbar/Navbar";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { PublicOnlyRoute } from "./routes/PublicOnlyRoute";
 import { Home } from "./pages/Home/Home";
 import { Login } from "./pages/Login/Login";
 import { Signup } from "./pages/Signup/Signup";
@@ -15,10 +16,14 @@ function App() {
         <div className="app-shell">
           <Navbar />
           <Routes>
-            {/* Public routes */}
+            {/* Always-public route */}
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+
+            {/* Guest-only routes — authenticated users are redirected to "/" */}
+            <Route element={<PublicOnlyRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+            </Route>
 
             {/* Protected routes — add nested routes here */}
             <Route element={<ProtectedRoute />}>

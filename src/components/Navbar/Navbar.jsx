@@ -48,10 +48,6 @@ export function Navbar() {
 
         {/* Nav links */}
         <div className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ""}`}>
-          <Link to="/" className={styles.navLink} onClick={() => setMenuOpen(false)}>
-            Home
-          </Link>
-
           {isAuthenticated ? (
             <>
               {/* Profile section */}
