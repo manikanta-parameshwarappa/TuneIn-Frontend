@@ -21,9 +21,14 @@ export function AuthProvider({ children }) {
    */
   const refreshAccessToken = useCallback(async () => {
     const data = await authService.refresh();
-    setAccessToken(data.accessToken);
+    const token = data.accessToken;
+    if (!token) {
+      // Refresh succeeded HTTP-wise but returned no token — treat as failure
+      throw new Error("No access token in refresh response");
+    }
+    setAccessToken(token);
     if (data.user) setUser(data.user);
-    return data.accessToken;
+    return token;
   }, []);
 
   /**

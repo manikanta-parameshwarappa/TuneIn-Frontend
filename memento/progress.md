@@ -31,6 +31,10 @@
 - [ ] End-to-end tests
 
 ## Known Issues / Assumptions
-- Backend auth paths assumed: `login`, `signup`, `logout`, `refresh`. Update [`src/services/authService.js`](../src/services/authService.js:1) if different.
-- `user` object shape assumed: `{ id, name, email }`. Extend context if more fields needed.
+- Backend auth paths: `POST /login`, `POST /signup`, `DELETE /logout`, `POST /refresh`. Update [`src/services/authService.js`](../src/services/authService.js:1) if different.
+- Backend returns `access_token` (snake_case) — normalized to `accessToken` by `normalizeAuth()` in [`src/services/authService.js`](../src/services/authService.js:17).
+- `user` object shape: `{ id, name, email }`. Extend `normalizeAuth()` in [`src/services/authService.js`](../src/services/authService.js:17) if more fields are needed.
 - No HTTPS forced in dev; production deployment should enforce HTTPS for secure cookies.
+
+## Bug Fixes Applied
+- **2026-03-19** — Navbar auth state not updating after login: backend `access_token` (snake_case) was not being read by context which expected `accessToken` (camelCase). Fixed in [`src/services/authService.js`](../src/services/authService.js) via `normalizeAuth()`.
