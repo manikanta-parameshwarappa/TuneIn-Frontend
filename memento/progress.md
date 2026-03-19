@@ -38,3 +38,4 @@
 
 ## Bug Fixes Applied
 - **2026-03-19** — Navbar auth state not updating after login: backend `access_token` (snake_case) was not being read by context which expected `accessToken` (camelCase). Fixed in [`src/services/authService.js`](../src/services/authService.js) via `normalizeAuth()`.
+- **2026-03-19** — Logout failing with Unauthorized: `authService.logout()` was using `axiosPublic` which has no interceptors, so no `Authorization` header was sent. Backend `authorize_request` rejected the DELETE request. Fixed by switching to `axiosInstance` in [`src/services/authService.js`](../src/services/authService.js).

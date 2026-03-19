@@ -1,4 +1,4 @@
-import { axiosPublic } from "./axiosInstance";
+import axiosInstance, { axiosPublic } from "./axiosInstance";
 
 /**
  * Auth API service — uses axiosPublic (no interceptors) to avoid circular
@@ -33,7 +33,10 @@ export const authService = {
   },
 
   async logout() {
-    const response = await axiosPublic.delete("/logout");
+    // Must use axiosInstance (authenticated) so the request interceptor
+    // attaches the Authorization: Bearer <token> header — the backend's
+    // authorize_request middleware requires it to identify the session.
+    const response = await axiosInstance.delete("/logout");
     return response.data;
   },
 
