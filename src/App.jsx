@@ -1,28 +1,43 @@
 import React from "react";
-import { useAuth } from "./hooks/useAuth";
-import SignupForm from "./components/SignupForm";
-import LoginForm from "./components/LoginForm";
-import ProtectedPage from "./components/ProtectedPage";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { Navbar } from "./components/Navbar/Navbar";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { PublicOnlyRoute } from "./routes/PublicOnlyRoute";
+import { Home } from "./pages/Home/Home";
+import { Login } from "./pages/Login/Login";
+import { Signup } from "./pages/Signup/Signup";
+import { NotFound } from "./pages/NotFound/NotFound";
 
 function App() {
-  const { user, signup, login, logout, loading } = useAuth();
-
-  if (loading) return <p>Loading...</p>;
-
   return (
-    <div>
-      {!user ? (
-        <>
-          <SignupForm onSignup={signup} />
-          <LoginForm onLogin={login} />
-        </>
-      ) : (
-        <>
-          <ProtectedPage user={user} />
-          <button onClick={logout}>Logout</button>
-        </>
-      )}
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <div className="app-shell">
+          <Navbar />
+          <Routes>
+            {/* Always-public route */}
+            <Route path="/" element={<Home />} />
+
+            {/* Guest-only routes — authenticated users are redirected to "/" */}
+            <Route element={<PublicOnlyRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+            </Route>
+
+            {/* Protected routes — add nested routes here */}
+            <Route element={<ProtectedRoute />}>
+              {/* Example protected route placeholder:
+                  <Route path="/library" element={<Library />} /> */}
+            </Route>
+
+            {/* Catch-all */}
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </div>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
