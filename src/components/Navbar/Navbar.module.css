@@ -104,35 +104,35 @@
   color: #60a5fa;
 }
 
-/* ── Logout button ──────────────────────────────────── */
-.logoutBtn {
-  background: transparent;
-  border: 1px solid rgba(156, 163, 175, 0.3);
-  color: #9CA3AF;
-  font-size: 0.9rem;
-  font-weight: 500;
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
-}
-
-.logoutBtn:hover {
-  border-color: #e05c5c;
-  color: #e05c5c;
-  background: rgba(224, 92, 92, 0.08);
-}
-
-/* ── Profile section ────────────────────────────────── */
-.profileSection {
+/* ── Avatar button ──────────────────────────────────── */
+.avatarWrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
 }
 
+.avatarBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.avatarBtn:hover .avatar,
+.avatarBtn:focus-visible .avatar {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.55);
+  transform: scale(1.07);
+}
+
+/* ── Avatar circle ──────────────────────────────────── */
 .avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
   color: #fff;
@@ -144,16 +144,90 @@
   flex-shrink: 0;
   letter-spacing: 0.03em;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  transition: box-shadow 0.2s, transform 0.15s;
+  user-select: none;
 }
 
-.userName {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #9CA3AF;
-  max-width: 140px;
+/* ── Dropdown panel ─────────────────────────────────── */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 180px;
+  background: #0d0d1a;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(59, 130, 246, 0.1);
+  padding: 0.5rem 0;
+  z-index: 200;
+
+  /* Hidden state */
+  opacity: 0;
+  transform: translateY(-6px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  transform-origin: top right;
+}
+
+.dropdownOpen {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+/* ── Dropdown items ─────────────────────────────────── */
+
+/* Non-clickable user name at the top */
+.dropdownName {
+  display: block;
+  padding: 0.55rem 1rem 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 200px;
+  cursor: default;
+  user-select: none;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: rgba(156, 163, 175, 0.12);
+  margin: 0.25rem 0;
+}
+
+/* Shared style for Profile link and Logout button */
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.55rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #9CA3AF;
+  background: none;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.dropdownItem:hover,
+.dropdownItem:focus-visible {
+  color: #fff;
+  background: rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+/* Logout gets a red hover tint */
+.dropdownLogout:hover,
+.dropdownLogout:focus-visible {
+  color: #e05c5c;
+  background: rgba(224, 92, 92, 0.08);
 }
 
 /* ── Hamburger (mobile) ─────────────────────────────── */
@@ -168,6 +242,15 @@
 }
 
 .bar {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #9CA3AF;
+  border-radius: 2px;
+  transition: transform 0.25s, opacity 0.25s;
+}
+
+.barOpen {
   display: block;
   width: 24px;
   height: 2px;
@@ -207,15 +290,33 @@
 
   .navLink,
   .signupBtn,
-  .adminBtn,
-  .logoutBtn {
+  .adminBtn {
     width: 100%;
     padding: 0.65rem 0.75rem;
     border-radius: 8px;
     text-align: left;
   }
 
-  .profileSection {
+  /* On mobile, avatar wrapper takes full width so dropdown aligns correctly */
+  .avatarWrapper {
+    width: 100%;
+  }
+
+  /* On mobile, the avatar button sits flush left */
+  .avatarBtn {
     padding: 0.5rem 0;
+  }
+
+  /* On mobile, dropdown stretches full width and positions below the avatar row */
+  .dropdown {
+    position: static;
+    min-width: 100%;
+    margin-top: 0.25rem;
+    transform: none;
+    transform-origin: top left;
+  }
+
+  .dropdownOpen {
+    transform: none;
   }
 }

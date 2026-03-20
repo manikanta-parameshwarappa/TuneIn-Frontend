@@ -1,9 +1,13 @@
 # Active Context
 
 ## Current State
-Core frontend infrastructure complete. Admin Dashboard and Artists Management page implemented with role-based access control. Artists page is now fully wired to the real API.
+Core frontend infrastructure complete. Admin Dashboard and Artists Management page implemented with role-based access control. Artists page is now fully wired to the real API. Navbar now uses an avatar dropdown for authenticated user actions.
 
 ## What Was Just Implemented
+- **Navbar avatar dropdown**: [`src/components/Navbar/Navbar.jsx`](../src/components/Navbar/Navbar.jsx) — removed inline user name and logout button from the main navbar. Instead, a clickable avatar button opens a dropdown menu containing: (1) the user's display name as non-clickable plain text, (2) a "Profile" link navigating to `/profile`, and (3) a "Logout" button. The dropdown closes on outside click via a `mousedown` listener bound only while open.
+- **Dropdown CSS**: [`src/components/Navbar/Navbar.module.css`](../src/components/Navbar/Navbar.module.css) — added `.avatarWrapper`, `.avatarBtn`, `.dropdown`, `.dropdownOpen` (smooth `opacity` + `translateY/scale` transition), `.dropdownName`, `.dropdownDivider`, `.dropdownItem`, `.dropdownLogout`. Responsive: on mobile (`≤640px`) the dropdown renders `position: static` and stretches full width inside the hamburger menu. Removed now-unused `.profileSection`, `.userName`, `.logoutBtn` classes.
+
+## What Was Previously Built
 - **`artistService.js`**: [`src/services/artistService.js`](../src/services/artistService.js) — service layer with `fetchArtists()` (`GET /api/artists`) and `createArtist()` (`POST /api/artists`). Handles both API response shapes: `[]` (empty) and `{ artists: [...], count: N }`.
 - **Artists page API integration**: [`src/pages/Artists/Artists.jsx`](../src/pages/Artists/Artists.jsx) — replaced local mock state with real API calls. Implements `loading`, `fetchError`, `submitting`, and `submitError` states. `loadArtists()` runs on mount via `useEffect`. `handleAddArtist()` calls `createArtist()`, appends the server-returned artist object, and closes the drawer only on success.
 - **`AddArtistDrawer` enhanced**: [`src/components/AddArtistDrawer/AddArtistDrawer.jsx`](../src/components/AddArtistDrawer/AddArtistDrawer.jsx) — accepts `submitting` (bool) and `serverError` (string|null) props. Submit button shows "Saving…" when in-flight; all interactive elements disabled while submitting; server error banner renders inside the drawer above the form; `dob` field removed (not in API contract).
