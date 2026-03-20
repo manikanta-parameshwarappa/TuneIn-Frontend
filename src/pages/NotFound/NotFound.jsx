@@ -8,10 +8,7 @@ export function NotFound() {
       <div className={styles.content}>
         <div className={styles.code}>404</div>
         <div className={styles.noteIcon}>♩</div>
-        <h1 className={styles.title}>Track not found</h1>
-        <p className={styles.text}>
-          Looks like this page skipped out of the playlist. Let's get you back on track.
-        </p>
+        <h1 className={styles.title}>Page you seek is not found</h1>
         <Link to="/" className={styles.homeBtn}>
           ← Back to Home
         </Link>

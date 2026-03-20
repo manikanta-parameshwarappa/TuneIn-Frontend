@@ -30,7 +30,6 @@ export function Navbar() {
       <div className={styles.navInner}>
         {/* Logo */}
         <Link to="/" className={styles.logo}>
-          <span className={styles.logoIcon}>♪</span>
           <span className={styles.logoText}>TuneIn</span>
         </Link>
 
