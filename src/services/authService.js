@@ -15,9 +15,18 @@ import axiosInstance, { axiosPublic } from "./axiosInstance";
  * always works with { accessToken, user }.
  */
 function normalizeAuth(data) {
+  const rawUser = data.user ?? null;
+  const user = rawUser
+    ? {
+        id: rawUser.id ?? null,
+        name: rawUser.name ?? null,
+        email: rawUser.email ?? null,
+        role: rawUser.role ?? "listener",
+      }
+    : null;
   return {
     accessToken: data.access_token ?? data.accessToken ?? null,
-    user: data.user ?? null,
+    user,
   };
 }
 

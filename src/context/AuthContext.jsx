@@ -110,12 +110,15 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const isAdmin = !!accessToken && user?.role === "admin";
+
   const value = {
     user,
     accessToken,
     initializing,
     loading,
     isAuthenticated: !!accessToken,
+    isAdmin,
     login,
     signup,
     logout,

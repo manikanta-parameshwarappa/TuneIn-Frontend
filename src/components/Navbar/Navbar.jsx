@@ -16,7 +16,7 @@ function UserAvatar({ name }) {
 }
 
 export function Navbar() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, isAdmin, user, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -49,6 +49,16 @@ export function Navbar() {
         <div className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ""}`}>
           {isAuthenticated ? (
             <>
+              {/* Admin Dashboard link — only visible to admins */}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className={styles.adminBtn}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Admin Dashboard
+                </Link>
+              )}
               {/* Profile section */}
               <div className={styles.profileSection}>
                 <UserAvatar name={user?.name} />

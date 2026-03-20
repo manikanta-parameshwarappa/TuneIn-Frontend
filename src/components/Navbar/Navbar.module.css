@@ -84,6 +84,26 @@
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
 }
 
+/* ── Admin Dashboard button ─────────────────────────── */
+.adminBtn {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.adminBtn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.6);
+  color: #60a5fa;
+}
+
 /* ── Logout button ──────────────────────────────────── */
 .logoutBtn {
   background: transparent;
@@ -187,6 +207,7 @@
 
   .navLink,
   .signupBtn,
+  .adminBtn,
   .logoutBtn {
     width: 100%;
     padding: 0.65rem 0.75rem;

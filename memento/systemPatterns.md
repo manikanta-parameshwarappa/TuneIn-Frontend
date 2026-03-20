@@ -76,6 +76,15 @@ flowchart TD
 - Otherwise → render `<Outlet />`.
 - After login, the `Login` page reads `location.state.from` and redirects back to the original destination.
 
+### 6. Admin Route Guard
+`AdminRoute` ([`src/routes/AdminRoute.jsx`](../src/routes/AdminRoute.jsx)) extends the protected route pattern with role-checking:
+- While `initializing === true` → show spinner (prevents flash of redirect).
+- If `!isAuthenticated` → `<Navigate to="/login" state={{ from: location }} replace />`.
+- If `isAuthenticated && !isAdmin` → `<Navigate to="/403" replace />`.
+- Otherwise → render `<Outlet />`.
+
+`isAdmin` is derived in [`src/context/AuthContext.jsx`](../src/context/AuthContext.jsx) as `!!accessToken && user?.role === "admin"`. The role comes from the backend via `normalizeAuth()` in [`src/services/authService.js`](../src/services/authService.js) — it is never set client-side.
+
 ### 6. CSS Modules
 Every component owns its styles via a co-located `.module.css` file. Global tokens (colours, fonts, radius) are defined as CSS custom properties in `src/index.css`.
 
@@ -85,7 +94,7 @@ src/
   context/        AuthContext.jsx
   hooks/          useAuth.js
   services/       axiosInstance.js  authService.js
-  routes/         ProtectedRoute.jsx
+  routes/         ProtectedRoute.jsx  PublicOnlyRoute.jsx  AdminRoute.jsx
   components/
     Navbar/       Navbar.jsx  Navbar.module.css
     AuthForm/     AuthForm.module.css  (shared by Login & Signup)
@@ -93,7 +102,8 @@ src/
     Home/         Home.jsx  Home.module.css
     Login/        Login.jsx
     Signup/       Signup.jsx
-    NotFound/     NotFound.jsx  NotFound.module.css
+    NotFound/     NotFound.jsx  NotFound.module.css  (supports variant="forbidden" for 403)
+    AdminDashboard/  AdminDashboard.jsx  AdminDashboard.module.css
   App.jsx
   main.jsx
   index.css

@@ -4,10 +4,12 @@ import { AuthProvider } from "./context/AuthContext";
 import { Navbar } from "./components/Navbar/Navbar";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { PublicOnlyRoute } from "./routes/PublicOnlyRoute";
+import { AdminRoute } from "./routes/AdminRoute";
 import { Home } from "./pages/Home/Home";
 import { Login } from "./pages/Login/Login";
 import { Signup } from "./pages/Signup/Signup";
 import { NotFound } from "./pages/NotFound/NotFound";
+import { AdminDashboard } from "./pages/AdminDashboard/AdminDashboard";
 
 function App() {
   return (
@@ -31,7 +33,13 @@ function App() {
                   <Route path="/library" element={<Library />} /> */}
             </Route>
 
+            {/* Admin-only routes — requires authenticated user with role="admin" */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
+
             {/* Catch-all */}
+            <Route path="/403" element={<NotFound variant="forbidden" />} />
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Routes>

@@ -21,6 +21,10 @@
   margin-bottom: -0.5rem;
 }
 
+.codeForbidden {
+  color: rgba(239, 68, 68, 0.2);
+}
+
 .noteIcon {
   font-size: 3rem;
   color: #1db954;
