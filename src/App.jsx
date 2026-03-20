@@ -11,6 +11,7 @@ import { Signup } from "./pages/Signup/Signup";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { AdminDashboard } from "./pages/AdminDashboard/AdminDashboard";
 import { Artists } from "./pages/Artists/Artists";
+import { Profile } from "./pages/Profile/Profile";
 
 function App() {
   return (
@@ -28,10 +29,9 @@ function App() {
               <Route path="/signup" element={<Signup />} />
             </Route>
 
-            {/* Protected routes — add nested routes here */}
+            {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
-              {/* Example protected route placeholder:
-                  <Route path="/library" element={<Library />} /> */}
+              <Route path="/profile" element={<Profile />} />
             </Route>
 
             {/* Admin-only routes — requires authenticated user with role="admin" */}
