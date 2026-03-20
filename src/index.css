@@ -6,15 +6,19 @@
 }
 
 :root {
-  --color-bg:        #0a0a12;
-  --color-bg-alt:    #0d0d1a;
-  --color-surface:   rgba(255, 255, 255, 0.04);
-  --color-border:    rgba(255, 255, 255, 0.08);
-  --color-accent:    #1db954;
-  --color-accent-dk: #17a349;
-  --color-text:      #ffffff;
-  --color-text-muted: rgba(255, 255, 255, 0.5);
-  --color-error:     #e05c5c;
+  /* ── Sleek & Minimal Premium Palette ── */
+  --color-bg:         #000000;           /* Pure Black — base background        */
+  --color-bg-alt:     #0a0a0f;           /* Near-black — section alt background */
+  --color-surface:    rgba(30, 58, 138, 0.08);  /* Midnight Blue tinted surface  */
+  --color-border:     rgba(156, 163, 175, 0.15);/* Silver Gray border             */
+  --color-primary:    #1E3A8A;           /* Midnight Blue — primary UI elements */
+  --color-primary-dk: #162d6e;           /* Darker Midnight Blue                */
+  --color-accent:     #3B82F6;           /* Aqua — interactive elements, CTA    */
+  --color-accent-dk:  #2563eb;           /* Darker Aqua for hover states        */
+  --color-secondary:  #9CA3AF;           /* Silver Gray — supporting text/icons */
+  --color-text:       #ffffff;
+  --color-text-muted: rgba(156, 163, 175, 0.75); /* Silver Gray muted text      */
+  --color-error:      #e05c5c;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     Helvetica, Arial, sans-serif;
   --radius-sm: 6px;
@@ -82,17 +86,17 @@ input, textarea, select {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(156, 163, 175, 0.18);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(59, 130, 246, 0.45);
 }
 
 /* ── Selection ──────────────────────────────────────── */
 ::selection {
-  background: rgba(29, 185, 84, 0.3);
+  background: rgba(59, 130, 246, 0.3);
   color: #fff;
 }
 
@@ -108,7 +112,7 @@ input, textarea, select {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.08);
+  border: 3px solid rgba(156, 163, 175, 0.12);
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: globalSpin 0.75s linear infinite;
