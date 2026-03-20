@@ -10,6 +10,7 @@ import { Login } from "./pages/Login/Login";
 import { Signup } from "./pages/Signup/Signup";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { AdminDashboard } from "./pages/AdminDashboard/AdminDashboard";
+import { Artists } from "./pages/Artists/Artists";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             {/* Admin-only routes — requires authenticated user with role="admin" */}
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/artists" element={<Artists />} />
             </Route>
 
             {/* Catch-all */}

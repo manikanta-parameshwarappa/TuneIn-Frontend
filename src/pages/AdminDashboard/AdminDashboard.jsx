@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import styles from "./AdminDashboard.module.css";
 
@@ -10,10 +11,11 @@ const stats = [
 ];
 
 const quickActions = [
-  { label: "Manage Users", description: "View, suspend, or remove user accounts.", icon: "👥" },
-  { label: "Content Moderation", description: "Review flagged tracks and playlists.", icon: "🛡️" },
-  { label: "System Logs", description: "Inspect application and access logs.", icon: "📋" },
-  { label: "Analytics", description: "Audience insights and streaming metrics.", icon: "📊" },
+  { label: "Manage Artists", description: "Add, edit, or remove artists from the catalogue.", icon: "🎤", to: "/admin/artists" },
+  { label: "Manage Users", description: "View, suspend, or remove user accounts.", icon: "👥", to: null },
+  { label: "Content Moderation", description: "Review flagged tracks and playlists.", icon: "🛡️", to: null },
+  { label: "System Logs", description: "Inspect application and access logs.", icon: "📋", to: null },
+  { label: "Analytics", description: "Audience insights and streaming metrics.", icon: "📊", to: null },
 ];
 
 export function AdminDashboard() {
@@ -53,16 +55,31 @@ export function AdminDashboard() {
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Quick Actions</h2>
           <div className={styles.actionsGrid}>
-            {quickActions.map((action) => (
-              <button key={action.label} className={styles.actionCard} type="button">
-                <span className={styles.actionIcon}>{action.icon}</span>
-                <div className={styles.actionBody}>
-                  <span className={styles.actionLabel}>{action.label}</span>
-                  <span className={styles.actionDesc}>{action.description}</span>
-                </div>
-                <span className={styles.actionArrow}>›</span>
-              </button>
-            ))}
+            {quickActions.map((action) =>
+              action.to ? (
+                <Link
+                  key={action.label}
+                  to={action.to}
+                  className={styles.actionCard}
+                >
+                  <span className={styles.actionIcon}>{action.icon}</span>
+                  <div className={styles.actionBody}>
+                    <span className={styles.actionLabel}>{action.label}</span>
+                    <span className={styles.actionDesc}>{action.description}</span>
+                  </div>
+                  <span className={styles.actionArrow}>›</span>
+                </Link>
+              ) : (
+                <button key={action.label} className={styles.actionCard} type="button">
+                  <span className={styles.actionIcon}>{action.icon}</span>
+                  <div className={styles.actionBody}>
+                    <span className={styles.actionLabel}>{action.label}</span>
+                    <span className={styles.actionDesc}>{action.description}</span>
+                  </div>
+                  <span className={styles.actionArrow}>›</span>
+                </button>
+              )
+            )}
           </div>
         </section>
 

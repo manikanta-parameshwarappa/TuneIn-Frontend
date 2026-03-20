@@ -138,6 +138,8 @@
   padding: 1.1rem 1.25rem;
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
+  color: inherit;
   transition: border-color 0.2s, background 0.2s, transform 0.15s;
   width: 100%;
 }

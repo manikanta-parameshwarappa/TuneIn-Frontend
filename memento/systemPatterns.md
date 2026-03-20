@@ -96,14 +96,16 @@ src/
   services/       axiosInstance.js  authService.js
   routes/         ProtectedRoute.jsx  PublicOnlyRoute.jsx  AdminRoute.jsx
   components/
-    Navbar/       Navbar.jsx  Navbar.module.css
-    AuthForm/     AuthForm.module.css  (shared by Login & Signup)
+    Navbar/            Navbar.jsx  Navbar.module.css
+    AuthForm/          AuthForm.module.css  (shared by Login & Signup)
+    AddArtistDrawer/   AddArtistDrawer.jsx  AddArtistDrawer.module.css
   pages/
-    Home/         Home.jsx  Home.module.css
-    Login/        Login.jsx
-    Signup/       Signup.jsx
-    NotFound/     NotFound.jsx  NotFound.module.css  (supports variant="forbidden" for 403)
-    AdminDashboard/  AdminDashboard.jsx  AdminDashboard.module.css
+    Home/              Home.jsx  Home.module.css
+    Login/             Login.jsx
+    Signup/            Signup.jsx
+    NotFound/          NotFound.jsx  NotFound.module.css  (supports variant="forbidden" for 403)
+    AdminDashboard/    AdminDashboard.jsx  AdminDashboard.module.css
+    Artists/           Artists.jsx  Artists.module.css  (admin-only, /admin/artists)
   App.jsx
   main.jsx
   index.css

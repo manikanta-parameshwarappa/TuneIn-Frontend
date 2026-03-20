@@ -1,6 +1,6 @@
 # Progress
 
-## Status: Foundation Complete + Admin Dashboard ✅
+## Status: Foundation Complete + Admin Dashboard + Artists Management ✅
 
 ## What Works
 - [x] **Project scaffolding** — Vite + React 19, ESLint, folder structure
@@ -17,12 +17,16 @@
 - [x] **Signup page** — name/email/password/confirm form, full validation, server error display
 - [x] **Home page** — public hero + feature cards; personalised greeting when logged in
 - [x] **Admin Dashboard page** — stats overview, quick-actions grid, session info panel; protected by `AdminRoute`
+- [x] **Artists Management page** ([`src/pages/Artists/Artists.jsx`](../src/pages/Artists/Artists.jsx)) — admin-only at `/admin/artists`; responsive artist card grid, avatar initials, count badge, empty state UI with music-note icon; edit/delete action buttons (UI only)
+- [x] **AddArtistDrawer component** ([`src/components/AddArtistDrawer/AddArtistDrawer.jsx`](../src/components/AddArtistDrawer/AddArtistDrawer.jsx)) — right-side slide-in drawer; Name + Email (required, validated) + DOB (optional date picker) + Bio (optional, 500-char counter); inline errors; focus trap; Escape key; body scroll lock; backdrop click to close; smooth CSS transition
 - [x] **NotFound page** — supports `variant="forbidden"` for 403 Access Denied; default is 404
 - [x] **Global dark CSS** — design tokens, scrollbar, selection, spinner, focus ring
 - [x] **Vite dev proxy** — `/api` → `http://localhost:3000`
 - [x] **Production build** — passes with 0 errors, 0 warnings
 
 ## What's Left to Build
+- [ ] Artists page — wire to real API (`GET /artists`, `POST /artists`)
+- [ ] Artists page — implement Edit and Delete functionality
 - [ ] Music player UI (audio bar, progress, volume)
 - [ ] Library / playlist pages
 - [ ] Search page
