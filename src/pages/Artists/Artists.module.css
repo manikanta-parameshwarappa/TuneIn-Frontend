@@ -119,6 +119,35 @@
   padding: 2rem 1.5rem 4rem;
 }
 
+/* ── Loading state ──────────────────────────────────── */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+/* ── Fetch error state ──────────────────────────────── */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 5rem 1.5rem;
+  text-align: center;
+}
+
+.errorMsg {
+  font-size: 0.92rem;
+  color: var(--color-error, #e05c5c);
+  margin: 0;
+  max-width: 420px;
+  line-height: 1.5;
+}
+
 /* ── Empty state ────────────────────────────────────── */
 .emptyState {
   display: flex;

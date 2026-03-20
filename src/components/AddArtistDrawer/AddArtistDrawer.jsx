@@ -32,11 +32,15 @@ const CloseIcon = () => (
  * AddArtistDrawer
  *
  * Props:
- *   open    {boolean}  — whether the drawer is visible
- *   onClose {Function} — called when the drawer should be closed
- *   onAdd   {Function} — called with the new artist object on successful submit
+ *   open        {boolean}       — whether the drawer is visible
+ *   onClose     {Function}      — called when the drawer should be closed
+ *   onAdd       {Function}      — called with the new artist payload on submit;
+ *                                 the parent owns the async request and passes
+ *                                 `submitting` / `serverError` back in.
+ *   submitting  {boolean}       — disables the form while the API call is in flight
+ *   serverError {string|null}   — API-level error to display inside the drawer
  */
-export function AddArtistDrawer({ open, onClose, onAdd }) {
+export function AddArtistDrawer({ open, onClose, onAdd, submitting = false, serverError = null }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState(EMPTY_ERRORS);
   const firstFieldRef = useRef(null);
@@ -59,7 +63,7 @@ export function AddArtistDrawer({ open, onClose, onAdd }) {
     if (!open) return;
     function handleKeyDown(e) {
       if (e.key === "Escape") {
-        handleClose();
+        if (!submitting) handleClose();
         return;
       }
       if (e.key !== "Tab") return;
@@ -94,6 +98,7 @@ export function AddArtistDrawer({ open, onClose, onAdd }) {
   }, [open]);
 
   function handleClose() {
+    if (submitting) return; // prevent close while API call is in flight
     setForm(EMPTY_FORM);
     setErrors(EMPTY_ERRORS);
     onClose();
@@ -136,14 +141,15 @@ export function AddArtistDrawer({ open, onClose, onAdd }) {
 
   function handleSubmit(e) {
     e.preventDefault();
+    if (submitting) return;
     if (!validate()) return;
+    // Delegate async handling (and close) to the parent via onAdd.
+    // The parent controls submitting/serverError props.
     onAdd({
       name: form.name.trim(),
       email: form.email.trim(),
-      dob: form.dob || null,
       bio: form.bio.trim() || null,
     });
-    handleClose();
   }
 
   const bioRemaining = BIO_MAX - form.bio.length;
@@ -176,10 +182,18 @@ export function AddArtistDrawer({ open, onClose, onAdd }) {
             className={styles.closeBtn}
             onClick={handleClose}
             aria-label="Close drawer"
+            disabled={submitting}
           >
             <CloseIcon />
           </button>
         </div>
+
+        {/* Server-level error banner */}
+        {serverError && (
+          <div className={styles.serverError} role="alert">
+            {serverError}
+          </div>
+        )}
 
         {/* Form */}
         <form
@@ -240,22 +254,6 @@ export function AddArtistDrawer({ open, onClose, onAdd }) {
               )}
             </div>
 
-            {/* Date of Birth */}
-            <div className={styles.fieldGroup}>
-              <label htmlFor="artist-dob" className={styles.label}>
-                Date of Birth{" "}
-                <span className={styles.optional}>(optional)</span>
-              </label>
-              <input
-                id="artist-dob"
-                name="dob"
-                type="date"
-                className={styles.input}
-                value={form.dob}
-                onChange={handleChange}
-              />
-            </div>
-
             {/* Bio */}
             <div className={styles.fieldGroup}>
               <label htmlFor="artist-bio" className={styles.label}>
@@ -301,11 +299,17 @@ export function AddArtistDrawer({ open, onClose, onAdd }) {
               type="button"
               className={styles.cancelBtn}
               onClick={handleClose}
+              disabled={submitting}
             >
               Cancel
             </button>
-            <button type="submit" className={styles.submitBtn}>
-              Add Artist
+            <button
+              type="submit"
+              className={styles.submitBtn}
+              disabled={submitting}
+              aria-busy={submitting}
+            >
+              {submitting ? "Saving…" : "Add Artist"}
             </button>
           </div>
         </form>

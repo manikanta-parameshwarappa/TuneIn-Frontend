@@ -1,5 +1,27 @@
 # Progress
 
+## What Works
+- Full authentication flow (login / signup / logout / silent refresh via HttpOnly cookie)
+- Role-based access control (`isAdmin` derived from JWT role claim)
+- `AdminRoute` guard — unauthenticated → `/login`, non-admin → `/403`
+- Artists page (`/admin/artists`): fetches real artists from `GET /api/artists`, creates new artists via `POST /api/artists`, shows loading / error / empty / grid states
+- `AddArtistDrawer`: inline validation, submitting state, server error banner, disabled controls during API call
+- `artistService.js` normalises both API response shapes (`[]` and `{ artists, count }`)
+- Admin Dashboard page (UI only — stats not wired to API yet)
+- All public pages (Home, Login, Signup, 404, 403)
+- Responsive Navbar with auth-aware rendering
+
+## What's Left to Build
+- Edit artist (`PUT /api/artists/:id`) — reuse `AddArtistDrawer` shell with pre-filled form
+- Delete artist (`DELETE /api/artists/:id`) — confirmation modal + optimistic removal
+- Music playback pages (`/library`, `/search`, `/player`)
+- Audio player bar / queue management
+- User profile / settings page
+- Admin Dashboard API integration (real stats and actions)
+
+## Known Issues
+- None currently
+
 ## Status: Foundation Complete + Admin Dashboard + Artists Management ✅
 
 ## What Works

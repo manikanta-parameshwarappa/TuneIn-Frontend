@@ -1,12 +1,13 @@
 # Active Context
 
 ## Current State
-Core frontend infrastructure complete. Admin Dashboard and Artists Management page implemented with role-based access control.
+Core frontend infrastructure complete. Admin Dashboard and Artists Management page implemented with role-based access control. Artists page is now fully wired to the real API.
 
 ## What Was Just Implemented
-- **Artists Management page**: [`src/pages/Artists/Artists.jsx`](../src/pages/Artists/Artists.jsx) — admin-only page at `/admin/artists`. Displays a responsive grid of artist cards with avatar initials, name, email, date of birth, truncated bio, and edit/delete action buttons. Includes an empty state UI with a music-note icon. Artist count badge in header.
-- **AddArtistDrawer component**: [`src/components/AddArtistDrawer/AddArtistDrawer.jsx`](../src/components/AddArtistDrawer/AddArtistDrawer.jsx) — right-side sliding drawer with semi-transparent backdrop. Contains a form with Name (required), Email (required with format validation), Date of Birth (optional date picker), and Bio (optional textarea with 500-char counter). Inline validation errors, focus trap, Escape key to close, body scroll lock, auto-reset on open/close.
-- **`/admin/artists` route registered**: [`src/App.jsx`](../src/App.jsx) registers `<Artists />` inside `<AdminRoute />` at `/admin/artists` — access control handled entirely by the route guard.
+- **`artistService.js`**: [`src/services/artistService.js`](../src/services/artistService.js) — service layer with `fetchArtists()` (`GET /api/artists`) and `createArtist()` (`POST /api/artists`). Handles both API response shapes: `[]` (empty) and `{ artists: [...], count: N }`.
+- **Artists page API integration**: [`src/pages/Artists/Artists.jsx`](../src/pages/Artists/Artists.jsx) — replaced local mock state with real API calls. Implements `loading`, `fetchError`, `submitting`, and `submitError` states. `loadArtists()` runs on mount via `useEffect`. `handleAddArtist()` calls `createArtist()`, appends the server-returned artist object, and closes the drawer only on success.
+- **`AddArtistDrawer` enhanced**: [`src/components/AddArtistDrawer/AddArtistDrawer.jsx`](../src/components/AddArtistDrawer/AddArtistDrawer.jsx) — accepts `submitting` (bool) and `serverError` (string|null) props. Submit button shows "Saving…" when in-flight; all interactive elements disabled while submitting; server error banner renders inside the drawer above the form; `dob` field removed (not in API contract).
+- **CSS additions**: `loadingState`, `errorState`, `errorMsg` added to [`src/pages/Artists/Artists.module.css`](../src/pages/Artists/Artists.module.css); `serverError` banner and `disabled` overrides added to [`src/components/AddArtistDrawer/AddArtistDrawer.module.css`](../src/components/AddArtistDrawer/AddArtistDrawer.module.css).
 
 ## What Was Previously Built
 - **Role-based access control**: `normalizeAuth()` in [`src/services/authService.js`](../src/services/authService.js) extracts `role`, defaulting to `"listener"`. The `user` shape is `{ id, name, email, role }`.
@@ -29,16 +30,16 @@ Core frontend infrastructure complete. Admin Dashboard and Artists Management pa
 - Vite dev proxy for `/api` → `http://localhost:3000`
 
 ## Next Steps
-1. Wire up Artists page to real API (`GET /artists`, `POST /artists`).
-2. Implement Edit and Delete functionality for artists.
-3. Add more protected pages (e.g., `/library`, `/search`, `/player`).
-4. Build music playback UI (audio player bar, queue management).
-5. Add user profile / settings page.
-6. Wire up Admin Dashboard stats/actions via API.
+1. Implement Edit (PUT `/api/artists/:id`) and Delete (DELETE `/api/artists/:id`) functionality for artists.
+2. Add more protected pages (e.g., `/library`, `/search`, `/player`).
+3. Build music playback UI (audio player bar, queue management).
+4. Add user profile / settings page.
+5. Wire up Admin Dashboard stats/actions via API.
 
 ## Active Decisions
-- Artists are currently managed in local React state (`useState`). When wiring to API, replace with `axiosInstance` calls and integrate loading/error states.
-- The `AddArtistDrawer` is a generic reusable drawer pattern — the same shell can be reused for Edit Artist by swapping the form fields and `onAdd` prop.
+- API response normalisation for artists lives entirely in `fetchArtists()` — both `[]` and `{ artists, count }` shapes are handled there; callers always receive a plain array.
+- `AddArtistDrawer` does NOT close itself on submit — the parent (`Artists.jsx`) controls close via `setDrawerOpen(false)` only on API success. This prevents premature close on error.
+- The `dob` field was removed from the drawer — it is not part of the current API contract (`POST /api/artists` accepts `name`, `email`, `bio` only).
 - Access control for `/admin/artists` is enforced entirely at the route level via `AdminRoute` — the page component itself has no role-check logic.
 - Backend uses snake_case (`access_token`). `normalizeAuth()` in [`src/services/authService.js`](../src/services/authService.js) is the single normalization point.
 - CSS Modules chosen over styled-components for zero runtime overhead and Vite-native support.

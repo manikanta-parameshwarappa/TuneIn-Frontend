@@ -76,6 +76,29 @@
   color: #e05c5c;
 }
 
+/* ── Server error banner ─────────────────────────────── */
+.serverError {
+  margin: 0.75rem 1.5rem 0;
+  padding: 0.75rem 1rem;
+  background: rgba(224, 92, 92, 0.1);
+  border: 1px solid rgba(224, 92, 92, 0.3);
+  border-radius: var(--radius-sm, 6px);
+  color: #fca5a5;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  flex-shrink: 0;
+}
+
+/* ── Disabled state for buttons ─────────────────────── */
+.closeBtn:disabled,
+.cancelBtn:disabled,
+.submitBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* ── Form ────────────────────────────────────────────── */
 .form {
   display: flex;

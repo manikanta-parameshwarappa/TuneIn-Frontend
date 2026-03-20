@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { AddArtistDrawer } from "../../components/AddArtistDrawer/AddArtistDrawer";
+import { fetchArtists, createArtist } from "../../services/artistService";
 import styles from "./Artists.module.css";
 
 function getInitials(name) {
@@ -10,17 +11,6 @@ function getInitials(name) {
     .slice(0, 2)
     .map((w) => w[0].toUpperCase())
     .join("");
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return null;
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 }
 
 function MusicNoteIcon() {
@@ -92,19 +82,65 @@ function TrashIcon() {
  */
 export function Artists() {
   const [artists, setArtists] = useState([]);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
 
-  function handleAddArtist(artist) {
-    setArtists((prev) => [
-      ...prev,
-      {
-        ...artist,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
+  /* ── Load artists on mount ─────────────────────────── */
+  const loadArtists = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const data = await fetchArtists();
+      setArtists(data);
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to load artists. Please try again.";
+      setFetchError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadArtists();
+  }, [loadArtists]);
+
+  /* ── Create artist via POST /api/artists ───────────── */
+  async function handleAddArtist(payload) {
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const newArtist = await createArtist(payload);
+      setArtists((prev) => [...prev, newArtist]);
+      setDrawerOpen(false);
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to create artist. Please try again.";
+      setSubmitError(message);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
+  function handleOpenDrawer() {
+    setSubmitError(null);
+    setDrawerOpen(true);
+  }
+
+  function handleCloseDrawer() {
+    setSubmitError(null);
+    setDrawerOpen(false);
+  }
+
+  /* ── Render ────────────────────────────────────────── */
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -126,7 +162,8 @@ export function Artists() {
           <button
             type="button"
             className={styles.addBtn}
-            onClick={() => setDrawerOpen(true)}
+            onClick={handleOpenDrawer}
+            disabled={loading}
           >
             <span className={styles.addBtnPlus} aria-hidden="true">+</span>
             Add Artist
@@ -135,7 +172,29 @@ export function Artists() {
       </header>
 
       <div className={styles.container}>
-        {artists.length === 0 ? (
+        {/* Loading state */}
+        {loading && (
+          <div className={styles.loadingState} role="status" aria-live="polite">
+            <p>Loading artists…</p>
+          </div>
+        )}
+
+        {/* Fetch error state */}
+        {!loading && fetchError && (
+          <div className={styles.errorState} role="alert">
+            <p className={styles.errorMsg}>{fetchError}</p>
+            <button
+              type="button"
+              className={styles.addBtn}
+              onClick={loadArtists}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !fetchError && artists.length === 0 && (
           <div className={styles.emptyState} role="status">
             <div className={styles.emptyIcon}>
               <MusicNoteIcon />
@@ -147,13 +206,16 @@ export function Artists() {
             <button
               type="button"
               className={styles.addBtn}
-              onClick={() => setDrawerOpen(true)}
+              onClick={handleOpenDrawer}
             >
               <span className={styles.addBtnPlus} aria-hidden="true">+</span>
               Add Artist
             </button>
           </div>
-        ) : (
+        )}
+
+        {/* Artists grid */}
+        {!loading && !fetchError && artists.length > 0 && (
           <div className={styles.grid} role="list">
             {artists.map((artist) => (
               <article key={artist.id} className={styles.card} role="listitem">
@@ -163,12 +225,6 @@ export function Artists() {
                 <div className={styles.info}>
                   <h3 className={styles.artistName}>{artist.name}</h3>
                   <p className={styles.artistEmail}>{artist.email}</p>
-                  {artist.dob && (
-                    <p className={styles.artistMeta}>
-                      <span className={styles.metaLabel}>Born</span>
-                      {formatDate(artist.dob)}
-                    </p>
-                  )}
                   {artist.bio && (
                     <p className={styles.artistBio}>
                       {artist.bio.length > 120
@@ -203,8 +259,10 @@ export function Artists() {
 
       <AddArtistDrawer
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={handleCloseDrawer}
         onAdd={handleAddArtist}
+        submitting={submitting}
+        serverError={submitError}
       />
     </main>
   );
