@@ -16,7 +16,7 @@ function UserAvatar({ name }) {
 }
 
 export function Navbar() {
-  const { isAuthenticated, isAdmin, user, logout } = useAuth();
+  const { isAuthenticated, isAdmin, initializing, user, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -63,75 +63,78 @@ export function Navbar() {
 
         {/* Nav links */}
         <div className={`${styles.navLinks} ${menuOpen ? styles.navLinksOpen : ""}`}>
-          {isAuthenticated ? (
-            <>
-              {/* Admin Dashboard link — only visible to admins */}
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  className={styles.adminBtn}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Admin Dashboard
-                </Link>
-              )}
-
-              {/* Avatar with dropdown */}
-              <div className={styles.avatarWrapper} ref={dropdownRef}>
-                <button
-                  className={styles.avatarBtn}
-                  onClick={() => setDropdownOpen((o) => !o)}
-                  aria-label="Open user menu"
-                  aria-expanded={dropdownOpen}
-                  aria-haspopup="menu"
-                >
-                  <UserAvatar name={user?.name} />
-                </button>
-
-                <div
-                  className={`${styles.dropdown} ${dropdownOpen ? styles.dropdownOpen : ""}`}
-                  role="menu"
-                >
-                  {/* 1. Display name — non-clickable plain text */}
-                  <span className={styles.dropdownName} role="menuitem" aria-disabled="true">
-                    {user?.name || "User"}
-                  </span>
-
-                  <div className={styles.dropdownDivider} />
-
-                  {/* 2. Profile link */}
+          {/* Hide auth-dependent UI while the session is being restored to prevent flash */}
+          {!initializing && (
+            isAuthenticated ? (
+              <>
+                {/* Admin Dashboard link — only visible to admins */}
+                {isAdmin && (
                   <Link
-                    to="/profile"
-                    className={styles.dropdownItem}
-                    role="menuitem"
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      setMenuOpen(false);
-                    }}
+                    to="/admin"
+                    className={styles.adminBtn}
+                    onClick={() => setMenuOpen(false)}
                   >
-                    Profile
+                    Admin Dashboard
                   </Link>
+                )}
 
-                  {/* 3. Logout */}
+                {/* Avatar with dropdown */}
+                <div className={styles.avatarWrapper} ref={dropdownRef}>
                   <button
-                    className={`${styles.dropdownItem} ${styles.dropdownLogout}`}
-                    role="menuitem"
-                    onClick={handleLogout}
+                    className={styles.avatarBtn}
+                    onClick={() => setDropdownOpen((o) => !o)}
+                    aria-label="Open user menu"
+                    aria-expanded={dropdownOpen}
+                    aria-haspopup="menu"
                   >
-                    Logout
+                    <UserAvatar name={user?.name} />
                   </button>
+
+                  <div
+                    className={`${styles.dropdown} ${dropdownOpen ? styles.dropdownOpen : ""}`}
+                    role="menu"
+                  >
+                    {/* 1. Display name — non-clickable plain text */}
+                    <span className={styles.dropdownName} role="menuitem" aria-disabled="true">
+                      {user?.name || "User"}
+                    </span>
+
+                    <div className={styles.dropdownDivider} />
+
+                    {/* 2. Profile link */}
+                    <Link
+                      to="/profile"
+                      className={styles.dropdownItem}
+                      role="menuitem"
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        setMenuOpen(false);
+                      }}
+                    >
+                      Profile
+                    </Link>
+
+                    {/* 3. Logout */}
+                    <button
+                      className={`${styles.dropdownItem} ${styles.dropdownLogout}`}
+                      role="menuitem"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className={styles.navLink} onClick={() => setMenuOpen(false)}>
-                Login
-              </Link>
-              <Link to="/signup" className={styles.signupBtn} onClick={() => setMenuOpen(false)}>
-                Sign Up
-              </Link>
-            </>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className={styles.navLink} onClick={() => setMenuOpen(false)}>
+                  Login
+                </Link>
+                <Link to="/signup" className={styles.signupBtn} onClick={() => setMenuOpen(false)}>
+                  Sign Up
+                </Link>
+              </>
+            )
           )}
         </div>
       </div>
