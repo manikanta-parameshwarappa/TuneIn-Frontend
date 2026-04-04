@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { AddArtistDrawer } from "../../components/AddArtistDrawer/AddArtistDrawer";
-import { fetchArtists, createArtist } from "../../services/artistService";
+import { ArtistModal } from "../../components/ArtistModal/ArtistModal";
+import { fetchArtists, createArtist, updateArtist, deleteArtist } from "../../services/artistService";
 import styles from "./Artists.module.css";
 
 function getInitials(name) {
@@ -85,9 +85,11 @@ export function Artists() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  
+  const [selectedArtist, setSelectedArtist] = useState(null);
 
   /* ── Load artists on mount ─────────────────────────── */
   const loadArtists = useCallback(async () => {
@@ -111,33 +113,59 @@ export function Artists() {
     loadArtists();
   }, [loadArtists]);
 
-  /* ── Create artist via POST /api/artists ───────────── */
-  async function handleAddArtist(payload) {
+  /* ── Create/Update artist ───────────── */
+  async function handleSubmit(payload) {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const newArtist = await createArtist(payload);
-      setArtists((prev) => [...prev, newArtist]);
-      setDrawerOpen(false);
+      if (selectedArtist) {
+        const updated = await updateArtist(selectedArtist.id, payload);
+        setArtists((prev) => prev.map((a) => (a.id === selectedArtist.id ? updated : a)));
+      } else {
+        const newArtist = await createArtist(payload);
+        setArtists((prev) => [...prev, newArtist]);
+      }
+      setModalOpen(false);
     } catch (err) {
       const message =
         err?.response?.data?.message ||
         err?.message ||
-        "Failed to create artist. Please try again.";
+        "Failed to save artist. Please try again.";
       setSubmitError(message);
     } finally {
       setSubmitting(false);
     }
   }
 
-  function handleOpenDrawer() {
+  function handleOpenCreateModal() {
+    setSelectedArtist(null);
     setSubmitError(null);
-    setDrawerOpen(true);
+    setModalOpen(true);
   }
 
-  function handleCloseDrawer() {
+  function handleOpenEditModal(artist) {
+    setSelectedArtist(artist);
     setSubmitError(null);
-    setDrawerOpen(false);
+    setModalOpen(true);
+  }
+
+  function handleCloseModal() {
+    setSubmitError(null);
+    setModalOpen(false);
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this artist?")) return;
+    try {
+      await deleteArtist(id);
+      setArtists((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to delete artist. Please try again.";
+      alert(message);
+    }
   }
 
   /* ── Render ────────────────────────────────────────── */
@@ -162,7 +190,7 @@ export function Artists() {
           <button
             type="button"
             className={styles.addBtn}
-            onClick={handleOpenDrawer}
+            onClick={handleOpenCreateModal}
             disabled={loading}
           >
             <span className={styles.addBtnPlus} aria-hidden="true">+</span>
@@ -206,7 +234,7 @@ export function Artists() {
             <button
               type="button"
               className={styles.addBtn}
-              onClick={handleOpenDrawer}
+              onClick={handleOpenCreateModal}
             >
               <span className={styles.addBtnPlus} aria-hidden="true">+</span>
               Add Artist
@@ -239,6 +267,7 @@ export function Artists() {
                     className={`${styles.actionBtn} ${styles.editBtn}`}
                     aria-label={`Edit ${artist.name}`}
                     title="Edit artist"
+                    onClick={() => handleOpenEditModal(artist)}
                   >
                     <PencilIcon />
                   </button>
@@ -247,6 +276,7 @@ export function Artists() {
                     className={`${styles.actionBtn} ${styles.deleteBtn}`}
                     aria-label={`Delete ${artist.name}`}
                     title="Delete artist"
+                    onClick={() => handleDelete(artist.id)}
                   >
                     <TrashIcon />
                   </button>
@@ -257,10 +287,11 @@ export function Artists() {
         )}
       </div>
 
-      <AddArtistDrawer
-        open={drawerOpen}
-        onClose={handleCloseDrawer}
-        onAdd={handleAddArtist}
+      <ArtistModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmit}
+        artist={selectedArtist}
         submitting={submitting}
         serverError={submitError}
       />

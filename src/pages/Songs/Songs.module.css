@@ -1,0 +1,335 @@
+/* ── Page shell ─────────────────────────────────────── */
+.page {
+  min-height: calc(100vh - 64px);
+  background: var(--color-bg, #0a0a12);
+  color: var(--color-text, #e5e7eb);
+}
+
+/* ── Header banner ──────────────────────────────────── */
+.header {
+  background: linear-gradient(135deg, #0d1424 0%, #111827 60%, #0a0f1e 100%);
+  border-bottom: 1px solid rgba(30, 58, 138, 0.4);
+  padding: 2.5rem 1.5rem 2rem;
+}
+
+.headerInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.headerBadge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #3b82f6;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  margin-bottom: 0.5rem;
+  width: fit-content;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 800;
+  color: #f9fafb;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  color: #93c5fd;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  font-size: 0.98rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0;
+}
+
+/* ── Add Button ──────────────────────────────── */
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--color-accent, #3b82f6);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.addBtn:hover {
+  background: var(--color-accent-dk, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+}
+
+.addBtn:active {
+  transform: translateY(0);
+}
+
+.addBtnPlus {
+  font-size: 1.1rem;
+  line-height: 1;
+  font-weight: 400;
+}
+
+/* ── Container ──────────────────────────────────────── */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* ── State Views ──────────────────────────────────── */
+.loadingState,
+.errorState,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem;
+  text-align: center;
+}
+
+.loadingState {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.errorMsg {
+  font-size: 0.92rem;
+  color: var(--color-error, #e05c5c);
+  margin: 0 0 1.25rem;
+  max-width: 420px;
+  line-height: 1.5;
+}
+
+.emptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: rgba(30, 58, 138, 0.12);
+  border: 1px solid rgba(30, 58, 138, 0.25);
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+}
+
+.emptyTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin: 0 0 0.5rem;
+}
+
+.emptyDesc {
+  font-size: 0.95rem;
+  color: #6b7280;
+  max-width: 380px;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+/* ── Songs list ───────────────────────────────────── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── Song card (list item) ────────────────────────── */
+.card {
+  background: rgba(17, 24, 39, 0.7);
+  border: 1px solid rgba(30, 58, 138, 0.25);
+  border-radius: var(--radius-sm, 6px);
+  padding: 1rem 1.25rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  gap: 1.5rem;
+  align-items: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(17, 24, 39, 0.9);
+}
+
+.playIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.songName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f9fafb;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artists {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.albumInfo {
+  font-size: 0.85rem;
+  color: #6b7280;
+  min-width: 150px;
+}
+
+.duration {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* ── Card action buttons ────────────────────────────── */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.card:hover .actions {
+  opacity: 1;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  color: #6b7280;
+  padding: 0;
+}
+
+.editBtn:hover {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #3b82f6;
+}
+
+.deleteBtn:hover {
+  background: rgba(224, 92, 92, 0.12);
+  border-color: rgba(224, 92, 92, 0.3);
+  color: #e05c5c;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 800px) {
+  .card {
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    row-gap: 1rem;
+  }
+  
+  .albumInfo {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  
+  .duration {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  
+  .actions {
+    grid-column: 3;
+    grid-row: 1;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 1.75rem 1rem 1.5rem;
+  }
+
+  .headerInner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .addBtn {
+    align-self: flex-start;
+  }
+
+  .container {
+    padding: 1.5rem 1rem 3rem;
+  }
+}

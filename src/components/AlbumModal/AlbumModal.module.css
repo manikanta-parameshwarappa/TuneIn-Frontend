@@ -1,53 +1,51 @@
-/* ── Backdrop ────────────────────────────────────────── */
-.backdrop {
+.overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background-color: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(2px);
-  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.28s ease;
 }
 
-.backdropVisible {
+.overlayVisible {
   opacity: 1;
   pointer-events: all;
 }
 
-/* ── Drawer panel ────────────────────────────────────── */
-.drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: 100%;
-  max-width: 460px;
+.modal {
   background: #0d1424;
-  border-left: 1px solid rgba(30, 58, 138, 0.45);
-  z-index: 201;
+  border: 1px solid rgba(30, 58, 138, 0.45);
+  border-radius: var(--radius-lg, 12px);
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  transform: scale(0.95) translateY(10px);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.drawerOpen {
-  transform: translateX(0);
+.modalVisible {
+  transform: scale(1) translateY(0);
 }
 
-/* ── Drawer header ───────────────────────────────────── */
-.drawerHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.header {
   padding: 1.5rem 1.5rem 1.25rem;
   border-bottom: 1px solid rgba(30, 58, 138, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   flex-shrink: 0;
 }
 
-.drawerTitle {
+.title {
   font-size: 1.15rem;
   font-weight: 700;
   color: #f9fafb;
@@ -76,30 +74,6 @@
   color: #e05c5c;
 }
 
-/* ── Server error banner ─────────────────────────────── */
-.serverError {
-  margin: 0.75rem 1.5rem 0;
-  padding: 0.75rem 1rem;
-  background: rgba(224, 92, 92, 0.1);
-  border: 1px solid rgba(224, 92, 92, 0.3);
-  border-radius: var(--radius-sm, 6px);
-  color: #fca5a5;
-  font-size: 0.85rem;
-  line-height: 1.45;
-  flex-shrink: 0;
-}
-
-/* ── Disabled state for buttons ─────────────────────── */
-.closeBtn:disabled,
-.cancelBtn:disabled,
-.submitBtn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* ── Form ────────────────────────────────────────────── */
 .form {
   display: flex;
   flex-direction: column;
@@ -116,7 +90,18 @@
   gap: 1.35rem;
 }
 
-/* ── Field group ─────────────────────────────────────── */
+.serverError {
+  margin: 0.75rem 1.5rem 0;
+  padding: 0.75rem 1rem;
+  background: rgba(224, 92, 92, 0.1);
+  border: 1px solid rgba(224, 92, 92, 0.3);
+  border-radius: var(--radius-sm, 6px);
+  color: #fca5a5;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  flex-shrink: 0;
+}
+
 .fieldGroup {
   display: flex;
   flex-direction: column;
@@ -142,8 +127,8 @@
   margin-left: 0.25rem;
 }
 
-/* ── Inputs ──────────────────────────────────────────── */
 .input,
+.select,
 .textarea {
   background: rgba(17, 24, 39, 0.8);
   border: 1px solid rgba(156, 163, 175, 0.18);
@@ -154,6 +139,7 @@
   width: 100%;
   transition: border-color 0.18s, box-shadow 0.18s;
   outline: none;
+  font-family: inherit;
 }
 
 .input::placeholder,
@@ -162,12 +148,12 @@
 }
 
 .input:focus,
+.select:focus,
 .textarea:focus {
   border-color: var(--color-accent, #3b82f6);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
 }
 
-/* Date input — style the calendar icon to match the dark theme */
 .input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.6) sepia(0.2);
   cursor: pointer;
@@ -178,12 +164,16 @@
   box-shadow: 0 0 0 3px rgba(224, 92, 92, 0.15) !important;
 }
 
+.select option {
+  background-color: #0d1424;
+  color: #f3f4f6;
+}
+
 .textarea {
   resize: vertical;
   min-height: 100px;
 }
 
-/* ── Error message ───────────────────────────────────── */
 .errorMsg {
   font-size: 0.8rem;
   color: var(--color-error, #e05c5c);
@@ -191,30 +181,6 @@
   line-height: 1.4;
 }
 
-/* ── Bio footer (counter + error row) ───────────────── */
-.bioFooter {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-  min-height: 1.2em;
-}
-
-.charCounter {
-  font-size: 0.78rem;
-  color: #6b7280;
-  text-align: right;
-  flex-shrink: 0;
-  margin-left: auto;
-  transition: color 0.15s;
-}
-
-.charCounterOver {
-  color: var(--color-error, #e05c5c);
-  font-weight: 600;
-}
-
-/* ── Form actions ────────────────────────────────────── */
 .formActions {
   display: flex;
   align-items: center;
@@ -238,7 +204,7 @@
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.cancelBtn:hover {
+.cancelBtn:hover:not(:disabled) {
   background: rgba(156, 163, 175, 0.08);
   border-color: rgba(156, 163, 175, 0.35);
   color: #e5e7eb;
@@ -256,17 +222,28 @@
   transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
 }
 
-.submitBtn:hover {
+.submitBtn:hover:not(:disabled) {
   background: var(--color-accent-dk, #2563eb);
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
 }
 
-.submitBtn:active {
+.submitBtn:active:not(:disabled) {
   transform: translateY(0);
 }
 
-/* ── Scrollbar inside fields area ───────────────────── */
+.closeBtn:disabled,
+.cancelBtn:disabled,
+.submitBtn:disabled,
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .fields::-webkit-scrollbar {
   width: 4px;
 }
@@ -280,11 +257,10 @@
   border-radius: 2px;
 }
 
-/* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 500px) {
-  .drawer {
-    max-width: 100%;
-    border-left: none;
-    border-top: 1px solid rgba(30, 58, 138, 0.45);
+  .modal {
+    margin: 1rem;
+    height: auto;
+    max-height: calc(100vh - 2rem);
   }
 }

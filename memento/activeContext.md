@@ -41,16 +41,15 @@ Core frontend infrastructure complete. Admin Dashboard and Artists Management pa
 - Vite dev proxy for `/api` → `http://localhost:3000`
 
 ## Next Steps
-1. Implement Edit (PUT `/api/artists/:id`) and Delete (DELETE `/api/artists/:id`) functionality for artists.
-2. Add more protected pages (e.g., `/library`, `/search`, `/player`).
-3. Build music playback UI (audio player bar, queue management).
-4. Add user profile / settings page.
-5. Wire up Admin Dashboard stats/actions via API.
+1. Add more protected pages (e.g., `/library`, `/search`, `/player`).
+2. Build music playback UI (audio player bar, queue management).
+3. Wire up Admin Dashboard stats/actions via API.
 
 ## Active Decisions
-- API response normalisation for artists lives entirely in `fetchArtists()` — both `[]` and `{ artists, count }` shapes are handled there; callers always receive a plain array.
-- `AddArtistDrawer` does NOT close itself on submit — the parent (`Artists.jsx`) controls close via `setDrawerOpen(false)` only on API success. This prevents premature close on error.
-- The `dob` field was removed from the drawer — it is not part of the current API contract (`POST /api/artists` accepts `name`, `email`, `bio` only).
-- Access control for `/admin/artists` is enforced entirely at the route level via `AdminRoute` — the page component itself has no role-check logic.
+- Modal UI approach used for CRUD (Artists, Albums, and Songs) rather than Drawer for better user focus and UX consistency.
+- Bulk song upload leverages `FormData` and native drag & drop, mapping multiple audio files to individual metadata forms before submission.
+- API response normalisation for artists, albums, and songs lives entirely in their respective service files `fetchArtists()` / `fetchAlbums()` / `fetchSongs()`.
+- Modals do NOT close themselves on submit — the parent components (`Artists.jsx`, `Albums.jsx`, `Songs.jsx`) control close via state only on API success. This prevents premature close on error.
+- Access control for `/admin/artists`, `/admin/albums`, and `/admin/songs` is enforced entirely at the route level via `AdminRoute`.
 - Backend uses snake_case (`access_token`). `normalizeAuth()` in [`src/services/authService.js`](../src/services/authService.js) is the single normalization point.
 - CSS Modules chosen over styled-components for zero runtime overhead and Vite-native support.

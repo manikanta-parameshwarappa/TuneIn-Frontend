@@ -12,6 +12,8 @@ const stats = [
 
 const quickActions = [
   { label: "Manage Artists", description: "Add, edit, or remove artists from the catalogue.", icon: "🎤", to: "/admin/artists" },
+  { label: "Manage Albums", description: "Create, edit, or remove albums.", icon: "💿", to: "/admin/albums" },
+  { label: "Manage Songs", description: "Bulk upload audio, edit metadata, and delete tracks.", icon: "🎵", to: "/admin/songs" },
   { label: "Manage Users", description: "View, suspend, or remove user accounts.", icon: "👥", to: null },
   { label: "Content Moderation", description: "Review flagged tracks and playlists.", icon: "🛡️", to: null },
   { label: "System Logs", description: "Inspect application and access logs.", icon: "📋", to: null },

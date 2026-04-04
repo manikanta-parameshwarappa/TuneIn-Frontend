@@ -12,8 +12,6 @@
 - Responsive Navbar with auth-aware rendering
 
 ## What's Left to Build
-- Edit artist (`PUT /api/artists/:id`) — reuse `AddArtistDrawer` shell with pre-filled form
-- Delete artist (`DELETE /api/artists/:id`) — confirmation modal + optimistic removal
 - Music playback pages (`/library`, `/search`, `/player`)
 - Audio player bar / queue management
 - User profile / settings page
@@ -47,8 +45,10 @@
 - [x] **Production build** — passes with 0 errors, 0 warnings
 
 ## What's Left to Build
-- [ ] Artists page — wire to real API (`GET /artists`, `POST /artists`)
-- [ ] Artists page — implement Edit and Delete functionality
+- [x] Artists page — wire to real API (`GET /artists`, `POST /artists`, `PUT /artists/:id`, `DELETE /artists/:id`)
+- [x] Artists page — implement Edit and Delete functionality using ArtistModal
+- [x] Albums page — full CRUD functionality via AlbumModal (`GET /albums`, `POST /albums`, `PUT /albums/:id`, `DELETE /albums/:id`)
+- [x] Songs page — bulk upload with drag & drop, Edit and Delete functionality (`GET /songs`, `POST /songs/bulk-upload`, `PUT /songs/:id`, `DELETE /songs/:id`)
 - [ ] Music player UI (audio bar, progress, volume)
 - [ ] Library / playlist pages
 - [ ] Search page
