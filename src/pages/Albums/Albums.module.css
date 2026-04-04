@@ -9,7 +9,7 @@
 .header {
   background: linear-gradient(135deg, #0d1424 0%, #111827 60%, #0a0f1e 100%);
   border-bottom: 1px solid rgba(30, 58, 138, 0.4);
-  padding: 2.5rem 1.5rem 2rem;
+  padding: 2.5rem 0 2rem;
 }
 
 .headerInner {
@@ -116,7 +116,7 @@
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 2rem 0 4rem;
 }
 
 /* ── State Views ──────────────────────────────────── */
@@ -292,9 +292,23 @@
 }
 
 /* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .headerInner,
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
 @media (max-width: 640px) {
   .header {
-    padding: 1.75rem 1rem 1.5rem;
+    padding: 1.75rem 0 1.5rem;
+  }
+
+  .headerInner,
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 
   .headerInner {
@@ -308,7 +322,7 @@
   }
 
   .container {
-    padding: 1.5rem 1rem 3rem;
+    padding: 1.5rem 0 3rem;
   }
 
   .grid {
