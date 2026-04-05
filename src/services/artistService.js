@@ -63,3 +63,28 @@ export async function createArtist(payload) {
   });
   return normalizeArtist(data);
 }
+/**
+ * Update an existing artist.
+ *
+ * @param {number} id
+ * @param {{ name: string, email: string, bio?: string }} payload
+ * @returns {Promise<{ id: number, name: string, bio: string|null, email: string }>}
+ */
+export async function updateArtist(id, payload) {
+  const { data } = await axiosInstance.put(`/artists/${id}`, {
+    name: payload.name,
+    email: payload.email,
+    bio: payload.bio || null,
+  });
+  return normalizeArtist(data);
+}
+
+/**
+ * Delete an artist.
+ *
+ * @param {number} id
+ * @returns {Promise<void>}
+ */
+export async function deleteArtist(id) {
+  await axiosInstance.delete(`/artists/${id}`);
+}

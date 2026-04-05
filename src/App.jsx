@@ -11,6 +11,8 @@ import { Signup } from "./pages/Signup/Signup";
 import { NotFound } from "./pages/NotFound/NotFound";
 import { AdminDashboard } from "./pages/AdminDashboard/AdminDashboard";
 import { Artists } from "./pages/Artists/Artists";
+import { Albums } from "./pages/Albums/Albums";
+import { Songs } from "./pages/Songs/Songs";
 import { Profile } from "./pages/Profile/Profile";
 
 function App() {
@@ -38,6 +40,8 @@ function App() {
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/artists" element={<Artists />} />
+              <Route path="/admin/albums" element={<Albums />} />
+              <Route path="/admin/songs" element={<Songs />} />
             </Route>
 
             {/* Catch-all */}
