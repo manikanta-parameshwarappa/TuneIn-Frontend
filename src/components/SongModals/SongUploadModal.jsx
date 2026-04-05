@@ -15,6 +15,149 @@ const SearchIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
 );
 
+const PlayIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+);
+
+const PauseIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+);
+
+const VolumeIcon = ({ isMuted }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {isMuted ? (
+      <><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></>
+    ) : (
+      <><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></>
+    )}
+  </svg>
+);
+
+const SongPlayer = ({ url, currentlyPlaying, setCurrentlyPlaying, songId }) => {
+  const audioRef = useRef(null);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+
+  const isPlaying = currentlyPlaying === songId;
+
+  useEffect(() => {
+    if (!isPlaying && audioRef.current) {
+      audioRef.current.pause();
+    }
+  }, [isPlaying]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const updateProgress = () => setProgress(audio.currentTime);
+    const updateDuration = () => {
+      if (audio.duration && !isNaN(audio.duration) && audio.duration !== Infinity) {
+        setDuration(audio.duration);
+      }
+    };
+    const handleEnded = () => setCurrentlyPlaying(null);
+
+    audio.addEventListener('timeupdate', updateProgress);
+    audio.addEventListener('loadedmetadata', updateDuration);
+    audio.addEventListener('durationchange', updateDuration);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', updateProgress);
+      audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('durationchange', updateDuration);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [setCurrentlyPlaying]);
+
+  const handleTogglePlay = () => {
+    if (isPlaying) {
+      audioRef.current.pause();
+      setCurrentlyPlaying(null);
+    } else {
+      setCurrentlyPlaying(songId);
+      audioRef.current.play().catch(e => console.error("Playback failed:", e));
+    }
+  };
+
+  const handleSeek = (e) => {
+    const newTime = Number(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
+      setProgress(newTime);
+    }
+  };
+
+  const handleVolume = (e) => {
+    const newVolume = Number(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+      setVolume(newVolume);
+    }
+  };
+
+  const toggleMute = () => {
+    if (audioRef.current) {
+      if (volume > 0) {
+        audioRef.current.volume = 0;
+        setVolume(0);
+      } else {
+        audioRef.current.volume = 1;
+        setVolume(1);
+      }
+    }
+  };
+
+  const formatTime = (time) => {
+    if (isNaN(time) || !isFinite(time)) return "0:00";
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className={styles.playerContainer}>
+      <audio ref={audioRef} src={url} preload="metadata" />
+      <button type="button" className={styles.playPauseBtn} onClick={handleTogglePlay} aria-label={isPlaying ? "Pause" : "Play"}>
+        {isPlaying ? <PauseIcon /> : <PlayIcon />}
+      </button>
+      
+      <div className={styles.progressContainer}>
+        <span className={styles.timeText}>{formatTime(progress)}</span>
+        <input
+          type="range"
+          min="0"
+          max={duration || 100}
+          step="0.1"
+          value={progress}
+          onChange={handleSeek}
+          className={styles.slider}
+          style={{ '--progress': `${duration ? (progress / duration) * 100 : 0}%` }}
+        />
+        <span className={styles.timeText}>{formatTime(duration)}</span>
+      </div>
+
+      <div className={styles.volumeContainer}>
+        <button type="button" className={styles.muteBtn} onClick={toggleMute} aria-label="Toggle mute">
+          <VolumeIcon isMuted={volume === 0} />
+        </button>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={volume}
+          onChange={handleVolume}
+          className={styles.slider}
+          style={{ '--progress': `${volume * 100}%` }}
+        />
+      </div>
+    </div>
+  );
+};
+
 const ArtistMultiSelect = ({ options, value, onChange, error, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -110,6 +253,7 @@ export function SongUploadModal({ isOpen, onClose, onUpload, submitting = false,
   const [albums, setAlbums] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -118,7 +262,12 @@ export function SongUploadModal({ isOpen, onClose, onUpload, submitting = false,
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
+      // Clean up object URLs
+      songs.forEach(song => {
+        if (song.previewUrl) URL.revokeObjectURL(song.previewUrl);
+      });
       setSongs([]);
+      setCurrentlyPlaying(null);
     }
   }, [isOpen]);
 
@@ -172,15 +321,15 @@ export function SongUploadModal({ isOpen, onClose, onUpload, submitting = false,
     if (audioFiles.length === 0) return;
 
     const newSongs = audioFiles.map(f => {
-      // Basic extraction of name from filename (remove extension)
       const name = f.name.replace(/\.[^/.]+$/, "");
       return {
         id: Math.random().toString(36).substring(7),
         file: f,
+        previewUrl: URL.createObjectURL(f),
         name: name,
         albumId: "",
         genre: "",
-        duration: "", // In a real app, you might parse ID3 tags or use an Audio object to get duration
+        duration: "",
         artistIds: [],
         errors: {}
       };
@@ -190,7 +339,14 @@ export function SongUploadModal({ isOpen, onClose, onUpload, submitting = false,
   };
 
   const handleRemoveSong = (id) => {
-    setSongs(prev => prev.filter(s => s.id !== id));
+    setSongs(prev => {
+      const songToRemove = prev.find(s => s.id === id);
+      if (songToRemove && songToRemove.previewUrl) {
+        URL.revokeObjectURL(songToRemove.previewUrl);
+      }
+      if (currentlyPlaying === id) setCurrentlyPlaying(null);
+      return prev.filter(s => s.id !== id);
+    });
   };
 
   const handleSongChange = (id, field, value) => {
@@ -276,7 +432,17 @@ export function SongUploadModal({ isOpen, onClose, onUpload, submitting = false,
                   <div className={styles.songItemHeader}>
                     <div className={styles.songFilenameWrapper}>
                       <span className={styles.songIndex}>{index + 1}</span>
-                      <h3 className={styles.songFilename} title={song.file.name}>{song.file.name}</h3>
+                      <div className={styles.songTitleContainer}>
+                        <h3 className={styles.songFilename} title={song.file.name}>{song.file.name}</h3>
+                        {song.previewUrl && (
+                          <SongPlayer
+                            url={song.previewUrl}
+                            songId={song.id}
+                            currentlyPlaying={currentlyPlaying}
+                            setCurrentlyPlaying={setCurrentlyPlaying}
+                          />
+                        )}
+                      </div>
                     </div>
                     {!submitting && (
                       <button type="button" className={styles.removeSongBtn} onClick={() => handleRemoveSong(song.id)} aria-label="Remove song">
