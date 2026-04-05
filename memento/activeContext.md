@@ -27,6 +27,13 @@ Core frontend infrastructure complete. Admin Dashboard and Artists Management pa
 
 ## Active Decisions
 - Modal UI approach used for CRUD (Artists, Albums, and Songs) rather than Drawer for better user focus and UX consistency.
-- Bulk song upload leverages `FormData` and native drag & drop, mapping multiple audio files to individual metadata forms before submission.
+- Bulk song upload leverages `FormData` and native drag & drop, mapping multiple audio files to individual metadata forms before submission. Includes an inline custom audio player.
 - API response normalisation for artists, albums, and songs lives entirely in their respective service files.
 - **UI Alignment Convention**: For all future pages implementing `max-width` constraints (like `1200px`), horizontal padding `padding: 0;` should be used on `.header`, `.headerInner`, and `.container` above `1200px`. A `@media (max-width: 1200px)` breakpoint must be explicitly provided to re-introduce horizontal padding (`1.5rem`) so content stays off the window edges on smaller viewports.
+- **Modern UI Guidelines**:
+  - Backgrounds: Use deeper, darker blue/gray gradients (e.g., `linear-gradient(to bottom right, #111827, #0f172a)` or `#0b1120`).
+  - Borders: Use subtle, low-opacity white/blue shades (e.g., `rgba(255, 255, 255, 0.05)` or `rgba(59, 130, 246, 0.2)`).
+  - Hover Effects: Incorporate slight vertical translation (`transform: translateY(-1px)`) combined with a soft, expansive box shadow (`box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4)`).
+  - Radiuses: Use larger border radiuses (e.g., `12px`, `16px` for modals, `40px` for pill-shaped elements like audio players).
+  - Custom Scrollbars: Employ transparent tracks with subtle gray thumbs (`rgba(156, 163, 175, 0.2)`) inside modal bodies to maintain a native dark theme feel.
+  - Multi-Select: Use custom dropdown components with checkboxes and a search bar rather than native `<select multiple>`.
