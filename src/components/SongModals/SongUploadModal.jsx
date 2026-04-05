@@ -7,6 +7,103 @@ const CloseIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
 );
 
+const TrashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+);
+
+const SearchIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+);
+
+const ArtistMultiSelect = ({ options, value, onChange, error, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter(opt =>
+    opt.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleToggle = (id) => {
+    if (value.includes(id)) {
+      onChange(value.filter(v => v !== id));
+    } else {
+      onChange([...value, id]);
+    }
+  };
+
+  const selectedNames = options
+    .filter(opt => value.includes(opt.id))
+    .map(opt => opt.name)
+    .join(", ");
+
+  return (
+    <div className={styles.multiSelectContainer} ref={dropdownRef}>
+      <div
+        className={`${styles.multiSelectHeader} ${error ? styles.inputError : ""} ${disabled ? styles.disabled : ""}`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+      >
+        <div className={styles.multiSelectValues}>
+          {value.length > 0 ? (
+            <span className={styles.multiSelectText}>{selectedNames}</span>
+          ) : (
+            <span className={styles.multiSelectPlaceholder}>Select artists...</span>
+          )}
+        </div>
+        <div className={styles.multiSelectIcon}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className={styles.multiSelectDropdown}>
+          <div className={styles.multiSelectSearch}>
+            <SearchIcon />
+            <input
+              type="text"
+              placeholder="Search artists..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={styles.searchInput}
+              autoFocus
+            />
+          </div>
+          <div className={styles.multiSelectOptions}>
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map(opt => (
+                <label key={opt.id} className={styles.multiSelectOption}>
+                  <div className={styles.checkboxWrapper}>
+                    <input
+                      type="checkbox"
+                      checked={value.includes(opt.id)}
+                      onChange={() => handleToggle(opt.id)}
+                      className={styles.multiSelectCheckbox}
+                    />
+                    <div className={styles.customCheckbox}></div>
+                  </div>
+                  <span className={styles.optionName}>{opt.name}</span>
+                </label>
+              ))
+            ) : (
+              <div className={styles.multiSelectNoResult}>No artists found</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export function SongUploadModal({ isOpen, onClose, onUpload, submitting = false, uploadProgress = 0, serverError = null }) {
   const [songs, setSongs] = useState([]);
   const [artists, setArtists] = useState([]);
@@ -105,9 +202,8 @@ export function SongUploadModal({ isOpen, onClose, onUpload, submitting = false,
     }));
   };
 
-  const handleMultiSelectChange = (id, e) => {
-    const values = Array.from(e.target.selectedOptions, option => option.value);
-    handleSongChange(id, "artistIds", values);
+  const handleArtistIdsChange = (id, newArtistIds) => {
+    handleSongChange(id, "artistIds", newArtistIds);
   };
 
   const validate = () => {
@@ -178,9 +274,14 @@ export function SongUploadModal({ isOpen, onClose, onUpload, submitting = false,
               {songs.map((song, index) => (
                 <div key={song.id} className={styles.songItem}>
                   <div className={styles.songItemHeader}>
-                    <h3 className={styles.songFilename}>#{index + 1} — {song.file.name}</h3>
+                    <div className={styles.songFilenameWrapper}>
+                      <span className={styles.songIndex}>{index + 1}</span>
+                      <h3 className={styles.songFilename} title={song.file.name}>{song.file.name}</h3>
+                    </div>
                     {!submitting && (
-                      <button type="button" className={styles.removeSongBtn} onClick={() => handleRemoveSong(song.id)}>Remove</button>
+                      <button type="button" className={styles.removeSongBtn} onClick={() => handleRemoveSong(song.id)} aria-label="Remove song">
+                        <TrashIcon />
+                      </button>
                     )}
                   </div>
 
@@ -212,16 +313,14 @@ export function SongUploadModal({ isOpen, onClose, onUpload, submitting = false,
                     </div>
 
                     <div className={`${styles.fieldGroup} ${styles.fieldGroupFull}`}>
-                      <label className={styles.label}>Artists (Multi-select) <span className={styles.required}>*</span></label>
-                      <select 
-                        multiple
-                        className={`${styles.select} ${song.errors.artistIds ? styles.inputError : ""}`}
-                        value={song.artistIds} 
-                        onChange={(e) => handleMultiSelectChange(song.id, e)}
+                      <label className={styles.label}>Artists <span className={styles.required}>*</span></label>
+                      <ArtistMultiSelect
+                        options={artists}
+                        value={song.artistIds}
+                        onChange={(values) => handleArtistIdsChange(song.id, values)}
+                        error={song.errors.artistIds}
                         disabled={submitting || loadingOptions}
-                      >
-                        {artists.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                      </select>
+                      />
                       {song.errors.artistIds && <span className={styles.errorMsg}>{song.errors.artistIds}</span>}
                     </div>
 

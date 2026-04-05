@@ -136,14 +136,20 @@
 }
 
 .songItem {
-  background: rgba(17, 24, 39, 0.8);
-  border: 1px solid rgba(156, 163, 175, 0.18);
-  border-radius: var(--radius-md, 8px);
-  padding: 1.25rem;
+  background: #111827;
+  border: 1px solid rgba(156, 163, 175, 0.12);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
   position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.songItem:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .songItemHeader {
@@ -151,31 +157,58 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid rgba(156, 163, 175, 0.1);
-  padding-bottom: 0.75rem;
+  padding-bottom: 1rem;
+}
+
+.songFilenameWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.songIndex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .songFilename {
   font-weight: 600;
   color: #f3f4f6;
-  font-size: 0.95rem;
+  font-size: 1rem;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .removeSongBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
-  border: none;
-  color: #ef4444;
+  border: 1px solid transparent;
+  color: #6b7280;
   cursor: pointer;
-  font-size: 0.85rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
 .removeSongBtn:hover {
   background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
 }
 
 .songFields {
@@ -235,23 +268,6 @@
 .select option {
   background-color: #0d1424;
   color: #f3f4f6;
-}
-
-.select[multiple] {
-  height: auto;
-  min-height: 80px;
-  padding: 0.4rem;
-}
-
-.select[multiple] option {
-  padding: 0.4rem 0.6rem;
-  border-radius: 4px;
-  margin-bottom: 2px;
-}
-
-.select[multiple] option:checked {
-  background: linear-gradient(0deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.3) 100%);
-  background-color: rgba(59, 130, 246, 0.3);
 }
 
 .errorMsg {
@@ -353,6 +369,180 @@
   color: #9ca3af;
   text-align: center;
   margin-top: 0.5rem;
+}
+
+/* MultiSelect Component Styles */
+.multiSelectContainer {
+  position: relative;
+  width: 100%;
+}
+
+.multiSelectHeader {
+  background: rgba(17, 24, 39, 0.8);
+  border: 1px solid rgba(156, 163, 175, 0.18);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.65rem 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  min-height: 42px;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.multiSelectHeader:hover {
+  border-color: rgba(156, 163, 175, 0.3);
+}
+
+.multiSelectHeader.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.multiSelectValues {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+
+.multiSelectText {
+  color: #f3f4f6;
+  font-size: 0.92rem;
+}
+
+.multiSelectPlaceholder {
+  color: #4b5563;
+  font-size: 0.92rem;
+}
+
+.multiSelectIcon {
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.multiSelectDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  border: 1px solid rgba(156, 163, 175, 0.2);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  max-height: 250px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.multiSelectSearch {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(156, 163, 175, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #9ca3af;
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  color: #f3f4f6;
+  font-size: 0.9rem;
+  width: 100%;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: #6b7280;
+}
+
+.multiSelectOptions {
+  overflow-y: auto;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.multiSelectOption {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.multiSelectOption:hover {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.checkboxWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.multiSelectCheckbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.customCheckbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #4b5563;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.multiSelectCheckbox:checked ~ .customCheckbox {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.multiSelectCheckbox:checked ~ .customCheckbox::after {
+  content: "";
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-top: -2px;
+}
+
+.optionName {
+  color: #d1d5db;
+  font-size: 0.9rem;
+}
+
+.multiSelectCheckbox:checked ~ .optionName,
+.multiSelectOption:has(.multiSelectCheckbox:checked) .optionName {
+  color: #fff;
+  font-weight: 500;
+}
+
+.multiSelectNoResult {
+  padding: 1rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 640px) {
