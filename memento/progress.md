@@ -48,7 +48,7 @@
 - [x] Artists page — wire to real API (`GET /artists`, `POST /artists`, `PUT /artists/:id`, `DELETE /artists/:id`)
 - [x] Artists page — implement Edit and Delete functionality using ArtistModal
 - [x] Albums page — full CRUD functionality via AlbumModal (`GET /albums`, `POST /albums`, `PUT /albums/:id`, `DELETE /albums/:id`)
-- [x] Songs page — bulk upload with drag & drop, inline preview audio player, custom modern Artist multi-select, Edit and Delete functionality (`GET /songs`, `POST /songs/bulk-upload`, `PUT /songs/:id`, `DELETE /songs/:id`)
+- [x] Songs page — bulk upload with drag & drop, inline preview audio player, custom modern Artist multi-select, Edit and Delete functionality (`GET /songs`, `POST /songs/bulk_create`, `PUT /songs/:id`, `DELETE /songs/:id`)
 - [ ] Music player UI (audio bar, progress, volume)
 - [ ] Library / playlist pages
 - [ ] Search page

@@ -52,7 +52,7 @@ export async function uploadSongs(songs, onProgress) {
     }
   });
 
-  const { data } = await axiosInstance.post("/songs/bulk-upload", formData, {
+  const { data } = await axiosInstance.post("/songs/bulk_create", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
