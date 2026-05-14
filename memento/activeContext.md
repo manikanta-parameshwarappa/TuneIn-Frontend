@@ -40,3 +40,9 @@ Core frontend infrastructure complete. Admin Dashboard and Artists Management pa
   - Radiuses: Use larger border radiuses (e.g., `12px`, `16px` for modals, `40px` for pill-shaped elements like audio players).
   - Custom Scrollbars: Employ transparent tracks with subtle gray thumbs (`rgba(156, 163, 175, 0.2)`) inside modal bodies to maintain a native dark theme feel.
   - Multi-Select: Use custom dropdown components with checkboxes and a search bar rather than native `<select multiple>`.
+  - **Primary Button Style Convention** (established in Profile page, mirrors Admin Dashboard action cards):
+    - Base: `background: rgba(17, 24, 39, 0.7)`, `border: 1px solid rgba(59, 130, 246, 0.35)`, `border-radius: 12px`, `color: #e2e8f0`.
+    - Gradient overlay: `::before` pseudo-element with `linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, transparent 100%)`, `opacity: 0` at rest, `opacity: 1` on hover.
+    - Hover: `border-color: rgba(59, 130, 246, 0.6)`, `transform: translateY(-3px)`, `box-shadow: 0 10px 24px -8px rgba(0,0,0,0.5), 0 0 16px -4px rgba(59,130,246,0.25)`.
+    - Use `position: relative; overflow: hidden` on the button and `z-index: 1` on inner children so the overlay doesn't bleed over text.
+    - Apply this pattern to all primary CTA buttons across new pages (save, submit, confirm actions).

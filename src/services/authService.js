@@ -18,10 +18,11 @@ function normalizeAuth(data) {
   const rawUser = data.user ?? null;
   const user = rawUser
     ? {
-        id: rawUser.id ?? null,
-        name: rawUser.name ?? null,
-        email: rawUser.email ?? null,
-        role: rawUser.role ?? "listener",
+        id:        rawUser.id         ?? null,
+        name:      rawUser.name       ?? null,
+        email:     rawUser.email      ?? null,
+        role:      rawUser.role       ?? "listener",
+        avatarUrl: rawUser.avatarUrl  ?? rawUser.avatar_url ?? null,
       }
     : null;
   return {

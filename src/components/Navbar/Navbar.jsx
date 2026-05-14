@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import styles from "./Navbar.module.css";
 
-function UserAvatar({ name }) {
+function UserAvatar({ name, avatarUrl }) {
   const initials = name
     ? name
         .split(" ")
@@ -12,6 +12,19 @@ function UserAvatar({ name }) {
         .join("")
         .toUpperCase()
     : "U";
+
+  if (avatarUrl) {
+    return (
+      <div className={styles.avatar}>
+        <img
+          src={avatarUrl}
+          alt={name || "User avatar"}
+          className={styles.avatarImg}
+        />
+      </div>
+    );
+  }
+
   return <div className={styles.avatar}>{initials}</div>;
 }
 
@@ -169,7 +182,7 @@ export function Navbar() {
                     aria-expanded={dropdownOpen}
                     aria-haspopup="menu"
                   >
-                    <UserAvatar name={user?.name} />
+                    <UserAvatar name={user?.name} avatarUrl={user?.avatarUrl} />
                   </button>
 
                   <div

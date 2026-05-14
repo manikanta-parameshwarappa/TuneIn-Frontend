@@ -1,6 +1,7 @@
 import React, { createContext, useState, useCallback, useRef, useEffect } from "react";
 import { authService } from "../services/authService";
 import { setupAxiosInterceptors } from "../services/axiosInstance";
+import { userService } from "../services/userService";
 
 export const AuthContext = createContext(null);
 
@@ -50,12 +51,22 @@ export function AuthProvider({ children }) {
     return eject; // clean up on unmount
   }, [refreshAccessToken, handleRefreshFail]);
 
-  // On first load: try a silent refresh to restore session from HttpOnly cookie
+  // On first load: try a silent refresh to restore session from HttpOnly cookie,
+  // then fetch the full profile so avatarUrl is available immediately.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         await refreshAccessToken();
+        // Hydrate avatarUrl (and dob) that the auth token doesn't carry
+        try {
+          const profile = await userService.getProfile();
+          if (!cancelled && profile) {
+            setUser((prev) => prev ? { ...prev, avatarUrl: profile.avatarUrl } : prev);
+          }
+        } catch (_) {
+          // Non-fatal — avatar just won't show until Profile page is visited
+        }
       } catch (_) {
         // No valid session — that's fine, user is simply not logged in
       } finally {
