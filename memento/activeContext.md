@@ -1,10 +1,13 @@
 # Active Context
 
 ## Current State
-Core frontend infrastructure complete. Admin Dashboard and Artists Management page implemented with role-based access control. Artists page is now fully wired to the real API. Navbar uses an avatar dropdown. Full `/profile` page implemented with avatar upload, profile information form, and password update form. Admin Dashboard UI/UX modernized.
+Core frontend infrastructure complete. Admin Dashboard and Artists Management page implemented with role-based access control. Artists page is now fully wired to the real API. Navbar uses an avatar dropdown. Full `/profile` page fully wired to the real backend API (`GET /profile`, `PATCH /profile`). Admin Dashboard UI/UX modernized.
 
 ## What Was Just Fixed
-- **Dashboard UI Layout Alignment** — `src/pages/AdminDashboard/AdminDashboard.module.css`, `src/pages/Artists/Artists.module.css`, `src/pages/Albums/Albums.module.css`, `src/pages/Songs/Songs.module.css`: All main admin page wrappers (`.header`, `.headerInner`, `.container`) now use `0` horizontal padding by default to ensure perfect alignment with their `max-width: 1200px` constraints. A `@media (max-width: 1200px)` media query now reliably introduces `1.5rem` side padding to prevent content from hitting the window edges on smaller screens. This ensures a uniform straight vertical alignment edge across all admin pages.
+- **Profile API wiring** — `src/services/userService.js`, `src/pages/Profile/Profile.jsx`, `src/context/AuthContext.jsx`:
+ - `userService.js` rewired from the incorrect `/api/users/edit` endpoint to the correct `/profile` route. All PATCH calls now send the required `type` discriminator param (`"info"`, `"password"`, `"avatar"`). Password update now sends `current_password`, `new_password`, `password_confirmation` (snake_case) as the backend expects. Removed the non-existent `removeAvatar()` method. Added `getProfile()` (`GET /profile`) to fetch the full user object including `dob` and `avatar_url`.
+ - `Profile.jsx` now calls `getProfile()` on mount to hydrate `dob` and `avatarUrl` (fields not in the auth token). After every successful mutation the local `profile` state and the global `AuthContext` user are both updated. Error extraction uses the backend's actual response shapes (`{ error: "..." }` or `{ errors: [...] }`). Password confirmation is passed to `updatePassword()` as the third argument.
+ - `AuthContext.jsx` now exposes `setUser` in its context value so the Profile page can push name/email/avatarUrl updates into the global user state (used by Navbar initials, etc.).
 
 ## What Was Previously Implemented
 - **Admin Dashboard UI/UX Modernization** — `src/pages/AdminDashboard/AdminDashboard.jsx`: Temporarily removed the Overview section as requested. Shifted into a two-column grid (`.mainContent` and `.sidebar`). Upgraded "Quick Actions" to an elegant, modernized card layout with a linear gradient background, box-shadow on hover, and an animated right arrow indicating interactivity. Session info is now cleanly displayed inside the sticky sidebar.

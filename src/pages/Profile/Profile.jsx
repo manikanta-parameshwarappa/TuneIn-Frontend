@@ -47,6 +47,23 @@ function measurePasswordStrength(pw) {
   return { score, ...map[score] };
 }
 
+/**
+ * Extract a human-readable error message from an axios error.
+ * Backend error shapes:
+ *   { error: "..." }          — single error string
+ *   { errors: ["...", ...] }  — array of full_messages
+ */
+function extractErrorMessage(err, fallback = "Something went wrong.") {
+  const data = err?.response?.data;
+  if (!data) return fallback;
+  if (typeof data.error === "string") return data.error;
+  if (Array.isArray(data.errors) && data.errors.length > 0) {
+    return data.errors.join(" ");
+  }
+  if (typeof data.message === "string") return data.message;
+  return fallback;
+}
+
 /* ─────────────────────────────────────────────────────────
    Sub-component: Toast
 ───────────────────────────────────────────────────────── */
@@ -123,10 +140,14 @@ function SkeletonProfile() {
    Main Profile page
 ───────────────────────────────────────────────────────── */
 export function Profile() {
-  const { user, initializing } = useAuth();
+  const { user, setUser, initializing } = useAuth();
+
+  // Local extended profile state (dob + avatarUrl not in auth token)
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   /* ── Avatar state ── */
-  const [avatarPreview, setAvatarPreview]     = useState(null); // object URL or data URL
+  const [avatarPreview, setAvatarPreview]     = useState(null);
   const [avatarFile, setAvatarFile]           = useState(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarProgress, setAvatarProgress]   = useState(0);
@@ -151,17 +172,33 @@ export function Profile() {
   }, []);
   const dismissToast = useCallback(() => setToast({ message: "", type: "success" }), []);
 
-  /* ── Pre-populate profile form once user is available ── */
+  /* ── Fetch full profile on mount (GET /profile) ── */
   useEffect(() => {
-    if (user) {
-      setProfileForm({
-        name:  user.name  || "",
-        email: user.email || "",
-        dob:   user.dob   || "",
-      });
-      if (user.avatarUrl) setAvatarPreview(user.avatarUrl);
-    }
-  }, [user]);
+    if (initializing) return; // wait for auth to resolve
+    let cancelled = false;
+    (async () => {
+      setProfileLoading(true);
+      try {
+        const data = await userService.getProfile();
+        if (!cancelled) {
+          setProfile(data);
+          setProfileForm({
+            name:  data.name  || "",
+            email: data.email || "",
+            dob:   data.dob   || "",
+          });
+          if (data.avatarUrl) setAvatarPreview(data.avatarUrl);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          showToast(extractErrorMessage(err, "Failed to load profile."), "error");
+        }
+      } finally {
+        if (!cancelled) setProfileLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [initializing, showToast]);
 
   /* ── IDs for accessible labels ── */
   const nameId    = useId();
@@ -206,32 +243,26 @@ export function Profile() {
     setAvatarUploading(true);
     setAvatarProgress(0);
     try {
-      await userService.uploadAvatar(avatarFile, setAvatarProgress);
+      // PATCH /profile  type=avatar
+      const updatedUser = await userService.uploadAvatar(avatarFile, setAvatarProgress);
+      setProfile(updatedUser);
+      setUser((prev) => ({ ...prev, avatarUrl: updatedUser.avatarUrl }));
       setAvatarFile(null);
+      // Keep the object URL as preview until the real URL arrives
+      if (updatedUser.avatarUrl) setAvatarPreview(updatedUser.avatarUrl);
       showToast("Profile photo updated successfully.");
     } catch (err) {
-      showToast(
-        err.response?.data?.message || "Failed to upload photo. Please try again.",
-        "error"
-      );
+      showToast(extractErrorMessage(err, "Failed to upload photo. Please try again."), "error");
     } finally {
       setAvatarUploading(false);
       setAvatarProgress(0);
     }
   };
 
-  const handleRemoveAvatar = async () => {
-    try {
-      await userService.removeAvatar();
-      setAvatarPreview(null);
-      setAvatarFile(null);
-      showToast("Profile photo removed.");
-    } catch (err) {
-      showToast(
-        err.response?.data?.message || "Failed to remove photo.",
-        "error"
-      );
-    }
+  const handleAvatarCancel = () => {
+    setAvatarFile(null);
+    // Restore to the last known server avatar (or null for initials)
+    setAvatarPreview(profile?.avatarUrl || null);
   };
 
   /* ══════════════════════════════════════════════════════
@@ -260,9 +291,9 @@ export function Profile() {
 
     /* Build diff — only send changed fields */
     const payload = {};
-    if (profileForm.name  !== (user?.name  || "")) payload.name  = profileForm.name;
-    if (profileForm.email !== (user?.email || "")) payload.email = profileForm.email;
-    if (profileForm.dob   !== (user?.dob   || "")) payload.dob   = profileForm.dob;
+    if (profileForm.name  !== (profile?.name  || "")) payload.name  = profileForm.name;
+    if (profileForm.email !== (profile?.email || "")) payload.email = profileForm.email;
+    if (profileForm.dob   !== (profile?.dob   || "")) payload.dob   = profileForm.dob;
 
     if (!Object.keys(payload).length) {
       showToast("No changes to save.", "info");
@@ -271,13 +302,32 @@ export function Profile() {
 
     setProfileSaving(true);
     try {
-      await userService.updateProfile(payload);
+      // PATCH /profile  type=info
+      const updatedUser = await userService.updateProfile(payload);
+      setProfile(updatedUser);
+      // Sync AuthContext user so Navbar etc. see the latest name/email
+      setUser((prev) => ({
+        ...prev,
+        name:  updatedUser.name  ?? prev?.name,
+        email: updatedUser.email ?? prev?.email,
+      }));
+      // Re-populate form with server-confirmed values
+      setProfileForm({
+        name:  updatedUser.name  || "",
+        email: updatedUser.email || "",
+        dob:   updatedUser.dob   || "",
+      });
       showToast("Profile updated successfully.");
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to update profile.";
+      const msg = extractErrorMessage(err, "Failed to update profile.");
       showToast(msg, "error");
-      if (err.response?.status === 409) {
-        setProfileErrors({ email: "This email is already in use." });
+      // Surface email uniqueness conflict as an inline field error
+      if (err.response?.status === 422) {
+        const raw = err.response?.data;
+        const errMsg = Array.isArray(raw?.errors) ? raw.errors.join(" ") : (raw?.error || "");
+        if (errMsg.toLowerCase().includes("email")) {
+          setProfileErrors({ email: errMsg || "This email is already in use." });
+        }
       }
     } finally {
       setProfileSaving(false);
@@ -317,14 +367,21 @@ export function Profile() {
 
     setPwSaving(true);
     try {
-      await userService.updatePassword(pwForm.current, pwForm.next);
+      // PATCH /profile  type=password
+      // Backend params: current_password, new_password, password_confirmation
+      await userService.updatePassword(pwForm.current, pwForm.next, pwForm.confirm);
       setPwForm({ current: "", next: "", confirm: "" });
       showToast("Password updated successfully.");
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to update password.";
+      const msg = extractErrorMessage(err, "Failed to update password.");
       showToast(msg, "error");
-      if (err.response?.status === 400) {
-        setPwErrors({ current: "Incorrect current password." });
+      // Surface "Current password is incorrect" as inline field error
+      if (err.response?.status === 422) {
+        const raw = err.response?.data;
+        const errStr = typeof raw?.error === "string" ? raw.error.toLowerCase() : "";
+        if (errStr.includes("current password") || errStr.includes("incorrect")) {
+          setPwErrors({ current: raw.error });
+        }
       }
     } finally {
       setPwSaving(false);
@@ -334,7 +391,7 @@ export function Profile() {
   /* ══════════════════════════════════════════════════════
      Render
   ══════════════════════════════════════════════════════ */
-  if (initializing) return <SkeletonProfile />;
+  if (initializing || profileLoading) return <SkeletonProfile />;
 
   return (
     <main className={styles.page}>
@@ -368,7 +425,7 @@ export function Profile() {
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Profile" className={styles.avatarImg} />
               ) : (
-                <span className={styles.avatarInitials}>{getInitials(user?.name)}</span>
+                <span className={styles.avatarInitials}>{getInitials(profile?.name || user?.name)}</span>
               )}
               <span className={styles.avatarOverlay} aria-hidden="true">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -412,21 +469,11 @@ export function Profile() {
                 {avatarUploading ? "Uploading…" : "Save Photo"}
               </button>
             )}
-            {(avatarPreview && !avatarFile) && (
-              <button
-                type="button"
-                className={styles.btnDanger}
-                onClick={handleRemoveAvatar}
-                disabled={avatarUploading}
-              >
-                Remove Photo
-              </button>
-            )}
             {avatarFile && (
               <button
                 type="button"
                 className={styles.btnGhost}
-                onClick={() => { setAvatarFile(null); setAvatarPreview(user?.avatarUrl || null); }}
+                onClick={handleAvatarCancel}
                 disabled={avatarUploading}
               >
                 Cancel
