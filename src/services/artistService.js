@@ -5,23 +5,24 @@ import axiosInstance from "./axiosInstance";
  *
  * The backend returns:
  *   {
- *     id, name, bio,
- *     user: { id, email, role },
+ *     id, bio,
+ *     user: { id, name, email, role, avatar },
  *     created_at, updated_at
  *   }
  *
  * We flatten it to:
- *   { id, name, bio, email }
+ *   { id, name, bio, email, avatarUrl }
  *
  * @param {object} raw
- * @returns {{ id: number, name: string, bio: string|null, email: string }}
+ * @returns {{ id: number, name: string, bio: string|null, email: string, avatarUrl: string|null }}
  */
 function normalizeArtist(raw) {
   return {
     id: raw.id,
-    name: raw.name,
+    name: raw.user?.name ?? raw.name ?? "",
     bio: raw.bio ?? null,
     email: raw.user?.email ?? raw.email ?? "",
+    avatarUrl: raw.user?.avatar ?? raw.avatar_url ?? raw.avatarUrl ?? raw.image_url ?? null,
   };
 }
 
@@ -50,32 +51,44 @@ export async function fetchArtists() {
 }
 
 /**
+ * Build a FormData or plain-object body for artist create/update.
+ * When avatarFile is provided the request is multipart/form-data so the
+ * server can persist the image. Otherwise JSON is used.
+ */
+function buildArtistBody(payload) {
+  if (payload.avatarFile) {
+    const fd = new FormData();
+    fd.append("name", payload.name);
+    fd.append("email", payload.email);
+    if (payload.bio) fd.append("bio", payload.bio);
+    fd.append("avatar", payload.avatarFile, payload.avatarFile.name);
+    return fd;
+  }
+  return { name: payload.name, email: payload.email, bio: payload.bio || null };
+}
+
+/**
  * Create a new artist.
  *
- * @param {{ name: string, email: string, bio?: string }} payload
- * @returns {Promise<{ id: number, name: string, bio: string|null, email: string }>}
+ * @param {{ name: string, email: string, bio?: string, avatarFile?: File|null }} payload
+ * @returns {Promise<{ id: number, name: string, bio: string|null, email: string, avatarUrl: string|null }>}
  */
 export async function createArtist(payload) {
-  const { data } = await axiosInstance.post("/artists", {
-    name: payload.name,
-    email: payload.email,
-    bio: payload.bio || null,
-  });
+  const body = buildArtistBody(payload);
+  const { data } = await axiosInstance.post("/artists", body);
   return normalizeArtist(data);
 }
+
 /**
  * Update an existing artist.
  *
  * @param {number} id
- * @param {{ name: string, email: string, bio?: string }} payload
- * @returns {Promise<{ id: number, name: string, bio: string|null, email: string }>}
+ * @param {{ name: string, email: string, bio?: string, avatarFile?: File|null }} payload
+ * @returns {Promise<{ id: number, name: string, bio: string|null, email: string, avatarUrl: string|null }>}
  */
 export async function updateArtist(id, payload) {
-  const { data } = await axiosInstance.put(`/artists/${id}`, {
-    name: payload.name,
-    email: payload.email,
-    bio: payload.bio || null,
-  });
+  const body = buildArtistBody(payload);
+  const { data } = await axiosInstance.put(`/artists/${id}`, body);
   return normalizeArtist(data);
 }
 

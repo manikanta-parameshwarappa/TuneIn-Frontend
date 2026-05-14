@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./AlbumModal.module.css";
 import { fetchArtists } from "../../services/artistService";
+
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_SIZE_MB = 2;
 
 export function AlbumModal({ isOpen, onClose, onSubmit, album, submitting, serverError }) {
   const [formData, setFormData] = useState({
@@ -12,6 +15,9 @@ export function AlbumModal({ isOpen, onClose, onSubmit, album, submitting, serve
   const [errors, setErrors] = useState({});
   const [artists, setArtists] = useState([]);
   const [loadingArtists, setLoadingArtists] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -22,6 +28,7 @@ export function AlbumModal({ isOpen, onClose, onSubmit, album, submitting, serve
           description: album.description || "",
           musicDirectorId: album.musicDirectorId || "",
         });
+        setAvatarPreview(album.avatarUrl || album.image_url || album.cover_url || null);
       } else {
         setFormData({
           name: "",
@@ -29,7 +36,9 @@ export function AlbumModal({ isOpen, onClose, onSubmit, album, submitting, serve
           description: "",
           musicDirectorId: "",
         });
+        setAvatarPreview(null);
       }
+      setAvatarFile(null);
       setErrors({});
       loadArtists();
     }
@@ -46,6 +55,28 @@ export function AlbumModal({ isOpen, onClose, onSubmit, album, submitting, serve
       setLoadingArtists(false);
     }
   };
+
+  function handleAvatarChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, avatar: "Only JPG, PNG, or WEBP images are accepted." }));
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, avatar: `Image must be ${MAX_IMAGE_SIZE_MB} MB or smaller.` }));
+      return;
+    }
+    setErrors((prev) => ({ ...prev, avatar: "" }));
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  }
+
+  function handleRemoveAvatar() {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   if (!isOpen) return null;
 
@@ -64,7 +95,7 @@ export function AlbumModal({ isOpen, onClose, onSubmit, album, submitting, serve
       setErrors(validationErrors);
       return;
     }
-    onSubmit(formData);
+    onSubmit({ ...formData, avatarFile: avatarFile || null });
   };
 
   const handleBackdropClick = (e) => {
@@ -125,6 +156,70 @@ export function AlbumModal({ isOpen, onClose, onSubmit, album, submitting, serve
 
           <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.fields}>
+              {/* ── Album cover uploader ── */}
+              <div className={styles.avatarSection}>
+                <div className={styles.avatarPreviewWrap}>
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="Album cover preview"
+                      className={styles.avatarPreviewImg}
+                    />
+                  ) : (
+                    <div className={styles.avatarPlaceholder} aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.avatarOverlayBtn}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={submitting}
+                    aria-label="Upload album cover"
+                    title="Upload cover"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </button>
+                </div>
+                <div className={styles.avatarMeta}>
+                  <span className={styles.avatarLabel}>Album Cover</span>
+                  <span className={styles.avatarHint}>JPG, PNG or WEBP · max {MAX_IMAGE_SIZE_MB} MB</span>
+                  <div className={styles.avatarBtns}>
+                    <button
+                      type="button"
+                      className={styles.avatarPickBtn}
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={submitting}
+                    >
+                      {avatarPreview ? "Change Cover" : "Upload Cover"}
+                    </button>
+                    {avatarPreview && (
+                      <button
+                        type="button"
+                        className={styles.avatarRemoveBtn}
+                        onClick={handleRemoveAvatar}
+                        disabled={submitting}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  {errors.avatar && (
+                    <p className={styles.errorMsg} role="alert">{errors.avatar}</p>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                  className={styles.hiddenFileInput}
+                  onChange={handleAvatarChange}
+                  disabled={submitting}
+                  aria-hidden="true"
+                  tabIndex={-1}
+                />
+              </div>
+
               <div className={styles.fieldGroup}>
                 <label htmlFor="name" className={styles.label}>
                   Album Name <span className={styles.required} aria-hidden="true">*</span>

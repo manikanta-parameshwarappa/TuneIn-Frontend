@@ -14,6 +14,28 @@ function normalizeAlbum(raw) {
     description: raw.description || raw.bio || "",
     musicDirectorId: raw.artist_id || raw.music_director_id || raw.musicDirectorId,
     musicDirectorName: raw.artist?.name || raw.music_director?.name || "",
+    avatarUrl: raw.avatar_url ?? raw.avatarUrl ?? raw.image_url ?? raw.cover_url ?? null,
+  };
+}
+
+/**
+ * Build FormData or plain-object body for album create/update.
+ */
+function buildAlbumBody(payload) {
+  if (payload.avatarFile) {
+    const fd = new FormData();
+    fd.append("name", payload.name);
+    fd.append("released_date", payload.releasedDate);
+    if (payload.description) fd.append("description", payload.description);
+    fd.append("artist_id", payload.musicDirectorId);
+    fd.append("cover", payload.avatarFile, payload.avatarFile.name);
+    return fd;
+  }
+  return {
+    name: payload.name,
+    released_date: payload.releasedDate,
+    description: payload.description,
+    artist_id: payload.musicDirectorId,
   };
 }
 
@@ -32,22 +54,14 @@ export async function fetchAlbums() {
 }
 
 export async function createAlbum(payload) {
-  const { data } = await axiosInstance.post("/albums", {
-    name: payload.name,
-    released_date: payload.releasedDate,
-    description: payload.description,
-    artist_id: payload.musicDirectorId,
-  });
+  const body = buildAlbumBody(payload);
+  const { data } = await axiosInstance.post("/albums", body);
   return normalizeAlbum(data);
 }
 
 export async function updateAlbum(id, payload) {
-  const { data } = await axiosInstance.put(`/albums/${id}`, {
-    name: payload.name,
-    released_date: payload.releasedDate,
-    description: payload.description,
-    artist_id: payload.musicDirectorId,
-  });
+  const body = buildAlbumBody(payload);
+  const { data } = await axiosInstance.put(`/albums/${id}`, body);
   return normalizeAlbum(data);
 }
 
