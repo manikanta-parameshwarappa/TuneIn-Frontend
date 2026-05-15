@@ -96,14 +96,19 @@
   align-self: center;
 }
 
-.addBtn:hover {
+.addBtn:hover:not(:disabled) {
   background: var(--color-accent-dk, #2563eb);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
 }
 
-.addBtn:active {
+.addBtn:active:not(:disabled) {
   transform: translateY(0);
+}
+
+.addBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .addBtnPlus {
@@ -119,8 +124,36 @@
   padding: 2rem 0 4rem;
 }
 
+/* ── Loading shimmer ──────────────────────────────── */
+.loadingState {
+  padding: 1.5rem 0;
+}
+
+.shimmerList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.shimmerRow {
+  height: 80px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ── State Views ──────────────────────────────────── */
-.loadingState,
 .errorState,
 .emptyState {
   display: flex;
@@ -129,11 +162,6 @@
   justify-content: center;
   padding: 5rem 1.5rem;
   text-align: center;
-}
-
-.loadingState {
-  color: #6b7280;
-  font-size: 0.95rem;
 }
 
 .errorMsg {
@@ -180,45 +208,73 @@
   gap: 0.5rem;
 }
 
-/* ── Song card (list item) ────────────────────────── */
+/* ── Song card ─────────────────────────────────────── */
 .card {
   background: rgba(17, 24, 39, 0.7);
-  border: 1px solid rgba(30, 58, 138, 0.25);
-  border-radius: var(--radius-sm, 6px);
-  padding: 1rem 1.25rem;
+  border: 1px solid rgba(30, 58, 138, 0.2);
+  border-radius: 10px;
+  padding: 0.85rem 1.25rem;
   display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
-  gap: 1.5rem;
+  grid-template-columns: 52px 1fr 160px 90px 54px 72px;
+  gap: 1rem;
   align-items: center;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
 .card:hover {
   border-color: rgba(59, 130, 246, 0.4);
-  background: rgba(17, 24, 39, 0.9);
+  background: rgba(17, 24, 39, 0.95);
+  box-shadow: 0 4px 20px -6px rgba(0, 0, 0, 0.5);
 }
 
-.playIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-sm, 6px);
+/* ── Album cover ───────────────────────────────── */
+.cover {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.coverImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.coverFallback {
+  width: 100%;
+  height: 100%;
   background: rgba(59, 130, 246, 0.15);
   color: #3b82f6;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
+.trackNum {
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+/* ── Card content ───────────────────────────── */
 .cardContent {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.15rem;
   min-width: 0;
 }
 
 .songName {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #f9fafb;
   margin: 0;
@@ -228,7 +284,7 @@
 }
 
 .artists {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #9ca3af;
   margin: 0;
   white-space: nowrap;
@@ -236,25 +292,137 @@
   text-overflow: ellipsis;
 }
 
-.albumInfo {
-  font-size: 0.85rem;
-  color: #6b7280;
-  min-width: 150px;
+/* ── Mini Audio Player ─────────────────────────── */
+.miniPlayer {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 0.25rem 0.6rem;
+  max-width: 280px;
 }
 
-.duration {
-  font-size: 0.85rem;
+.miniPlayBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.85);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.miniPlayBtn:hover {
+  background: #3b82f6;
+  transform: scale(1.08);
+}
+
+.miniSeek {
+  -webkit-appearance: none;
+  flex: 1;
+  height: 3px;
+  background: rgba(156, 163, 175, 0.25);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  min-width: 0;
+}
+
+.miniSeek::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: var(--p, 0%);
+  background: #3b82f6;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.miniSeek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+.miniSeek::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  border: none;
+}
+
+.miniTime {
+  font-size: 0.68rem;
   color: #6b7280;
   font-variant-numeric: tabular-nums;
-  min-width: 50px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Album info ─────────────────────────────── */
+.albumInfo {
+  font-size: 0.83rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Genre badge ─────────────────────────────── */
+.genreBadge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 84px;
+}
+
+.genreEmpty {
+  font-size: 0.83rem;
+  color: #374151;
+}
+
+/* ── Duration ────────────────────────────────── */
+.duration {
+  font-size: 0.83rem;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
-/* ── Card action buttons ────────────────────────────── */
+/* ── Action buttons ─────────────────────────────── */
 .actions {
   display: flex;
-  gap: 0.5rem;
-  opacity: 0.5;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  opacity: 0.4;
   transition: opacity 0.2s;
 }
 
@@ -266,9 +434,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm, 6px);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
@@ -290,35 +458,43 @@
 }
 
 /* ── Responsive ─────────────────────────────────────── */
-@media (max-width: 800px) {
-  .card {
-    grid-template-columns: auto 1fr auto;
-    grid-template-rows: auto auto;
-    row-gap: 1rem;
-  }
-  
-  .albumInfo {
-    grid-column: 2;
-    grid-row: 2;
-  }
-  
-  .duration {
-    grid-column: 3;
-    grid-row: 2;
-  }
-  
-  .actions {
-    grid-column: 3;
-    grid-row: 1;
-    opacity: 1;
-  }
-}
-
 @media (max-width: 1200px) {
   .headerInner,
   .container {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .card {
+    grid-template-columns: 44px 1fr auto auto;
+    grid-template-rows: auto auto;
+    row-gap: 0.5rem;
+  }
+
+  .albumInfo {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: 0.78rem;
+  }
+
+  .genreBadge,
+  .genreEmpty {
+    display: none;
+  }
+
+  .duration {
+    grid-column: 3;
+    grid-row: 2;
+    font-size: 0.78rem;
+  }
+
+  .actions {
+    grid-column: 4;
+    grid-row: 1 / 3;
+    opacity: 1;
+    align-self: center;
   }
 }
 
@@ -344,6 +520,29 @@
   }
 
   .container {
-    padding: 1.5rem 0 3rem;
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+  }
+
+  .card {
+    grid-template-columns: 44px 1fr auto;
+    padding: 0.75rem 1rem;
+  }
+
+  .albumInfo,
+  .duration,
+  .genreBadge,
+  .genreEmpty {
+    display: none;
+  }
+
+  .actions {
+    grid-column: 3;
+    grid-row: 1;
+    opacity: 1;
+  }
+
+  .miniPlayer {
+    max-width: 200px;
   }
 }
