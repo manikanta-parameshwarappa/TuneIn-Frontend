@@ -1,27 +1,42 @@
 import axiosInstance from "./axiosInstance";
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+
+/**
+ * Resolve a potentially relative avatar path to a full URL.
+ * The Rails backend returns only_path: true paths like /rails/active_storage/blobs/...
+ */
+function resolveAvatarUrl(path) {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE}${path}`;
+}
+
 /**
  * Normalize a raw artist object from the API into a flat shape.
  *
  * The backend returns:
  *   {
- *     id, name, bio,
- *     user: { id, email, role },
+ *     id, bio, dob,
+ *     user: { id, name, email, role, dob, avatar },
  *     created_at, updated_at
  *   }
  *
  * We flatten it to:
- *   { id, name, bio, email }
+ *   { id, name, bio, dob, email, avatarUrl }
  *
  * @param {object} raw
- * @returns {{ id: number, name: string, bio: string|null, email: string }}
+ * @returns {{ id: number, name: string, bio: string|null, dob: string|null, email: string, avatarUrl: string|null }}
  */
 function normalizeArtist(raw) {
+  const rawAvatar = raw.user?.avatar ?? raw.avatar_url ?? raw.avatarUrl ?? raw.image_url ?? null;
   return {
     id: raw.id,
-    name: raw.name,
+    name: raw.user?.name ?? raw.name ?? "",
     bio: raw.bio ?? null,
+    dob: raw.dob ?? raw.user?.dob ?? null,
     email: raw.user?.email ?? raw.email ?? "",
+    avatarUrl: resolveAvatarUrl(rawAvatar),
   };
 }
 
@@ -50,32 +65,56 @@ export async function fetchArtists() {
 }
 
 /**
- * Create a new artist.
- *
- * @param {{ name: string, email: string, bio?: string }} payload
- * @returns {Promise<{ id: number, name: string, bio: string|null, email: string }>}
+ * Build a FormData or plain-object body for artist create/update.
+ * When avatarFile is provided the request is multipart/form-data so the
+ * server can persist the image. Otherwise JSON is used.
  */
-export async function createArtist(payload) {
-  const { data } = await axiosInstance.post("/artists", {
+function buildArtistBody(payload) {
+  if (payload.avatarFile) {
+    const fd = new FormData();
+    fd.append("name", payload.name);
+    fd.append("email", payload.email);
+    if (payload.dob) fd.append("dob", payload.dob);
+    if (payload.bio) fd.append("bio", payload.bio);
+    fd.append("avatar", payload.avatarFile, payload.avatarFile.name);
+    return fd;
+  }
+  return {
     name: payload.name,
     email: payload.email,
+    dob: payload.dob || null,
     bio: payload.bio || null,
-  });
+  };
+}
+
+/**
+ * Create a new artist.
+ *
+ * @param {{ name: string, email: string, bio?: string, avatarFile?: File|null }} payload
+ * @returns {Promise<{ id: number, name: string, bio: string|null, email: string, avatarUrl: string|null }>}
+ */
+export async function createArtist(payload) {
+  const body = buildArtistBody(payload);
+  const config = body instanceof FormData
+    ? { headers: { "Content-Type": undefined } }
+    : {};
+  const { data } = await axiosInstance.post("/artists", body, config);
   return normalizeArtist(data);
 }
+
 /**
  * Update an existing artist.
  *
  * @param {number} id
- * @param {{ name: string, email: string, bio?: string }} payload
- * @returns {Promise<{ id: number, name: string, bio: string|null, email: string }>}
+ * @param {{ name: string, email: string, bio?: string, avatarFile?: File|null }} payload
+ * @returns {Promise<{ id: number, name: string, bio: string|null, email: string, avatarUrl: string|null }>}
  */
 export async function updateArtist(id, payload) {
-  const { data } = await axiosInstance.put(`/artists/${id}`, {
-    name: payload.name,
-    email: payload.email,
-    bio: payload.bio || null,
-  });
+  const body = buildArtistBody(payload);
+  const config = body instanceof FormData
+    ? { headers: { "Content-Type": undefined } }
+    : {};
+  const { data } = await axiosInstance.put(`/artists/${id}`, body, config);
   return normalizeArtist(data);
 }
 

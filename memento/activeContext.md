@@ -1,13 +1,22 @@
 # Active Context
 
 ## Current State
-Core frontend infrastructure complete. Admin Dashboard and Artists Management page implemented with role-based access control. Artists page is now fully wired to the real API. Navbar uses an avatar dropdown. Full `/profile` page fully wired to the real backend API (`GET /profile`, `PATCH /profile`). Admin Dashboard UI/UX modernized.
+Core frontend infrastructure complete. Admin Dashboard revamped into a unified, single-page tabbed CRUD UI covering Artists, Albums, and Songs. Each tab has a live search bar, a structured data table with all entity attributes, and Edit/Delete action buttons. All CRUD operations wire directly to the existing service layer. The old standalone `/admin/artists`, `/admin/albums`, `/admin/songs` routes remain but the primary admin experience now lives entirely at `/admin`. Navbar uses an avatar dropdown. Full `/profile` page fully wired to the real backend API.
 
-## What Was Just Fixed
-- **Profile API wiring** — `src/services/userService.js`, `src/pages/Profile/Profile.jsx`, `src/context/AuthContext.jsx`:
- - `userService.js` rewired from the incorrect `/api/users/edit` endpoint to the correct `/profile` route. All PATCH calls now send the required `type` discriminator param (`"info"`, `"password"`, `"avatar"`). Password update now sends `current_password`, `new_password`, `password_confirmation` (snake_case) as the backend expects. Removed the non-existent `removeAvatar()` method. Added `getProfile()` (`GET /profile`) to fetch the full user object including `dob` and `avatar_url`.
- - `Profile.jsx` now calls `getProfile()` on mount to hydrate `dob` and `avatarUrl` (fields not in the auth token). After every successful mutation the local `profile` state and the global `AuthContext` user are both updated. Error extraction uses the backend's actual response shapes (`{ error: "..." }` or `{ errors: [...] }`). Password confirmation is passed to `updatePassword()` as the third argument.
- - `AuthContext.jsx` now exposes `setUser` in its context value so the Profile page can push name/email/avatarUrl updates into the global user state (used by Navbar initials, etc.).
+## What Was Just Implemented
+- **Admin Dashboard Revamp** — `src/pages/AdminDashboard/AdminDashboard.jsx` and `src/pages/AdminDashboard/AdminDashboard.module.css`:
+  - Replaced the old quick-actions card grid with a **three-tab layout**: Artists | Albums | Songs.
+  - Each tab contains: a **search bar** (live client-side filter), a **+ Add/Upload button**, and a **data table** showing all entity attributes with an **Actions column** (Edit + Delete).
+  - Artists table columns: `#`, Name (with initials avatar), Email, Bio, Actions.
+  - Albums table columns: `#`, Album Name (with disc avatar), Artist, Released, Description, Actions.
+  - Songs table columns: `#`, Song Name (with play icon avatar), Artists, Album, Genre (badge), Duration, Actions.
+  - Tab bar is sticky below the Navbar; each tab shows a count badge.
+  - **Loading state**: animated shimmer skeleton replaces the table while data fetches.
+  - **Error state**: inline error banner with Retry button.
+  - **Empty state**: contextual illustration + CTA button.
+  - All CRUD operations use existing service functions (`artistService`, `albumService`, `songService`).
+  - All existing modals (`ArtistModal`, `AlbumModal`, `SongUploadModal`, `SongEditModal`) are reused unchanged.
+  - Fully responsive: toolbar stacks on mobile, action button labels hide on narrow screens, tab bar scrolls horizontally.
 
 ## What Was Previously Implemented
 - **Admin Dashboard UI/UX Modernization** — `src/pages/AdminDashboard/AdminDashboard.jsx`: Temporarily removed the Overview section as requested. Shifted into a two-column grid (`.mainContent` and `.sidebar`). Upgraded "Quick Actions" to an elegant, modernized card layout with a linear gradient background, box-shadow on hover, and an animated right arrow indicating interactivity. Session info is now cleanly displayed inside the sticky sidebar.
@@ -17,6 +26,7 @@ Core frontend infrastructure complete. Admin Dashboard and Artists Management pa
 
 ## What Was Previously Built
 - **Role-based access control**: `normalizeAuth()` in `src/services/authService.js` extracts `role`, defaulting to `"listener"`. The `user` shape is `{ id, name, email, role }`.
+- **Artist API response shape** (updated): Backend GET `/artists` returns `{ id, bio, created_at, updated_at, user: { id, name, email, role, avatar } }`. The `name`, `email`, and `avatar` fields are nested inside `user`. `normalizeArtist()` in `src/services/artistService.js` reads `raw.user?.name`, `raw.user?.email`, `raw.user?.avatar` with fallbacks for backward compatibility.
 - **`isAdmin` flag in AuthContext**: `src/context/AuthContext.jsx` computes `isAdmin = !!accessToken && user?.role === "admin"`.
 - **`AdminRoute` guard**: `src/routes/AdminRoute.jsx` — unauthenticated → `/login`, non-admin → `/403`, admin → outlet.
 - **403 Forbidden page**: `src/pages/NotFound/NotFound.jsx` with `variant="forbidden"` prop.
@@ -24,9 +34,9 @@ Core frontend infrastructure complete. Admin Dashboard and Artists Management pa
 - Axios dual-instance pattern with request/response interceptors
 
 ## Next Steps
-1. Add more protected pages (e.g., `/library`, `/search`, `/player`).
-2. Build music playback UI (audio player bar, queue management).
-3. Wire up Admin Dashboard stats/actions via API (once the Overview section is ready to be restored).
+1. Optionally restore the Admin Overview/stats section above the tab bar.
+2. Add more protected pages (e.g., `/library`, `/search`, `/player`).
+3. Build music playback UI (audio player bar, queue management).
 
 ## Active Decisions
 - Modal UI approach used for CRUD (Artists, Albums, and Songs) rather than Drawer for better user focus and UX consistency.

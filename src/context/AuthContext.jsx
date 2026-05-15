@@ -80,8 +80,23 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       const data = await authService.login(email, password);
+      // Update the ref immediately so axiosInstance interceptor can attach the
+      // Bearer token on the very next request (getProfile below) without waiting
+      // for a React re-render cycle.
+      accessTokenRef.current = data.accessToken;
       setAccessToken(data.accessToken);
       setUser(data.user);
+      // Hydrate avatarUrl from the full profile — the auth response doesn't
+      // include avatar_url, so without this the navbar shows initials only
+      // even when the user already has a photo uploaded.
+      try {
+        const profile = await userService.getProfile();
+        if (profile) {
+          setUser((prev) => prev ? { ...prev, avatarUrl: profile.avatarUrl } : prev);
+        }
+      } catch (_) {
+        // Non-fatal — initials will show instead of avatar photo
+      }
       return { success: true };
     } catch (err) {
       return {
@@ -97,8 +112,23 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       const data = await authService.signup(name, email, password);
+      // Update the ref immediately so axiosInstance interceptor can attach the
+      // Bearer token on the very next request (getProfile below) without waiting
+      // for a React re-render cycle.
+      accessTokenRef.current = data.accessToken;
       setAccessToken(data.accessToken);
       setUser(data.user);
+      // Hydrate avatarUrl from the full profile — the auth response doesn't
+      // include avatar_url, so without this the navbar shows initials only
+      // even when the user already has a photo uploaded.
+      try {
+        const profile = await userService.getProfile();
+        if (profile) {
+          setUser((prev) => prev ? { ...prev, avatarUrl: profile.avatarUrl } : prev);
+        }
+      } catch (_) {
+        // Non-fatal — initials will show instead of avatar photo
+      }
       return { success: true };
     } catch (err) {
       return {

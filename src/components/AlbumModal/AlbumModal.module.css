@@ -264,3 +264,140 @@
     max-height: calc(100vh - 2rem);
   }
 }
+
+/* ── Avatar / cover uploader ─────────────────────────── */
+.avatarSection {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1rem;
+  background: rgba(17, 24, 39, 0.5);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 10px;
+}
+
+.avatarPreviewWrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(30, 58, 138, 0.2);
+  border: 2px solid rgba(59, 130, 246, 0.25);
+}
+
+.avatarPreviewImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+}
+
+.avatarOverlayBtn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  border: none;
+  cursor: pointer;
+  color: transparent;
+  transition: background 0.18s, color 0.18s;
+  border-radius: 10px;
+}
+
+.avatarOverlayBtn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.52);
+  color: #fff;
+}
+
+.avatarOverlayBtn:disabled {
+  cursor: not-allowed;
+}
+
+.avatarMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.avatarLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #d1d5db;
+}
+
+.avatarHint {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.avatarBtns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.avatarPickBtn {
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.1);
+  color: #93c5fd;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.avatarPickBtn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.22);
+  border-color: rgba(59, 130, 246, 0.65);
+  color: #bfdbfe;
+}
+
+.avatarPickBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.avatarRemoveBtn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(224, 92, 92, 0.3);
+  background: transparent;
+  color: #f87171;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.avatarRemoveBtn:hover:not(:disabled) {
+  background: rgba(224, 92, 92, 0.1);
+  border-color: rgba(224, 92, 92, 0.55);
+}
+
+.avatarRemoveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hiddenFileInput {
+  display: none;
+}
