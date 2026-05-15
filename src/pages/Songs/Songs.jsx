@@ -43,7 +43,15 @@ function MiniPlayer({ src }) {
     return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
   };
 
-  if (!src) return null;
+  // Compute fill percentage for the seek track background
+  const fillPct = duration ? Math.round((progress / duration) * 100) : 0;
+  const seekBg = `linear-gradient(to right, #3b82f6 ${fillPct}%, rgba(156,163,175,0.25) ${fillPct}%)`;
+
+  if (!src) return (
+    <div className={styles.miniPlayerEmpty}>
+      <span className={styles.miniNoAudio}>No audio</span>
+    </div>
+  );
 
   return (
     <div className={styles.miniPlayer} onClick={(e) => e.stopPropagation()}>
@@ -58,27 +66,27 @@ function MiniPlayer({ src }) {
       />
       <button
         type="button"
-        className={styles.miniPlayBtn}
+        className={`${styles.miniPlayBtn} ${playing ? styles.miniPlayBtnActive : ""}`}
         onClick={toggle}
         aria-label={playing ? "Pause" : "Play"}
       >
         {playing ? (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
         ) : (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         )}
       </button>
       <input
         type="range"
         min="0"
         max={duration || 100}
-        step="0.5"
+        step="0.1"
         value={progress}
         onChange={handleSeek}
         className={styles.miniSeek}
-        style={{ "--p": `${duration ? (progress / duration) * 100 : 0}%` }}
+        style={{ background: seekBg }}
       />
-      <span className={styles.miniTime}>{fmt(progress)}/{fmt(duration)}</span>
+      <span className={styles.miniTime}>{fmt(progress)} / {fmt(duration)}</span>
     </div>
   );
 }

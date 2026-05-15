@@ -1,5 +1,5 @@
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { ArtistModal } from "../../components/ArtistModal/ArtistModal";
 import { AlbumModal } from "../../components/AlbumModal/AlbumModal";
@@ -62,6 +62,71 @@ function PlusIcon() {
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
+  );
+}
+
+/* ── Mini Audio Player (inline, no CSS module needed) ──── */
+function MiniPlayer({ src }) {
+  const audioRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  const toggle = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (playing) { a.pause(); setPlaying(false); }
+    else { a.play().catch(() => {}); setPlaying(true); }
+  };
+  const handleTimeUpdate = () => {
+    const a = audioRef.current;
+    if (a) setProgress(a.currentTime);
+  };
+  const handleLoaded = () => {
+    const a = audioRef.current;
+    if (a && isFinite(a.duration)) setDuration(a.duration);
+  };
+  const handleEnded = () => setPlaying(false);
+  const handleSeek = (e) => {
+    const a = audioRef.current;
+    if (!a) return;
+    const t = Number(e.target.value);
+    a.currentTime = t;
+    setProgress(t);
+  };
+  const fmt = (s) => {
+    if (!s || !isFinite(s)) return "0:00";
+    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  };
+  const fillPct = duration ? Math.round((progress / duration) * 100) : 0;
+  const seekBg = `linear-gradient(to right, #3b82f6 ${fillPct}%, rgba(156,163,175,0.2) ${fillPct}%)`;
+
+  if (!src) return <span style={{ fontSize: "0.7rem", color: "#374151", fontStyle: "italic" }}>No audio</span>;
+
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(59,130,246,0.18)", borderRadius: "20px", padding: "0.28rem 0.6rem", minWidth: "160px", maxWidth: "220px" }}
+    >
+      <audio ref={audioRef} src={src} preload="metadata" onTimeUpdate={handleTimeUpdate} onLoadedMetadata={handleLoaded} onDurationChange={handleLoaded} onEnded={handleEnded} />
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={playing ? "Pause" : "Play"}
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "22px", height: "22px", borderRadius: "50%", background: playing ? "#3b82f6" : "rgba(59,130,246,0.8)", color: "#fff", border: "none", cursor: "pointer", flexShrink: 0 }}
+      >
+        {playing
+          ? <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          : <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        }
+      </button>
+      <input
+        type="range" min="0" max={duration || 100} step="0.1" value={progress}
+        onChange={handleSeek}
+        style={{ flex: 1, height: "4px", borderRadius: "2px", outline: "none", cursor: "pointer", minWidth: 0, WebkitAppearance: "none", appearance: "none", background: seekBg }}
+      />
+      <span style={{ fontSize: "0.65rem", color: "#6b7280", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{fmt(progress)}/{fmt(duration)}</span>
+    </div>
   );
 }
 
@@ -587,13 +652,14 @@ export function AdminDashboard() {
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <colgroup>
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "20%" }} />
+                <col style={{ width: "3%" }} />
                 <col style={{ width: "18%" }} />
-                <col style={{ width: "16%" }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "13%" }} />
+                <col style={{ width: "9%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "22%" }} />
                 <col style={{ width: "12%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "20%" }} />
               </colgroup>
               <thead>
                 <tr>
@@ -603,57 +669,72 @@ export function AdminDashboard() {
                   <th className={styles.th}>Album</th>
                   <th className={styles.th}>Genre</th>
                   <th className={styles.th}>Duration</th>
+                  <th className={styles.th}>Audio Preview</th>
                   <th className={`${styles.th} ${styles.thActions}`}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredSongs.map((song, idx) => (
-                  <tr key={song.id} className={styles.tr}>
-                    <td className={`${styles.td} ${styles.tdMuted}`}>{idx + 1}</td>
-                    <td className={styles.td}>
-                      <div className={styles.nameCell}>
-                        <div className={`${styles.avatar} ${styles.avatarSong}`} aria-hidden="true">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                {filteredSongs.map((song, idx) => {
+                  const coverSrc = song.album?.coverUrl || null;
+                  return (
+                    <tr key={song.id} className={styles.tr}>
+                      <td className={`${styles.td} ${styles.tdMuted}`}>{idx + 1}</td>
+                      <td className={styles.td}>
+                        <div className={styles.nameCell}>
+                          {coverSrc ? (
+                            <img
+                              src={coverSrc}
+                              alt={song.album?.name || "Album cover"}
+                              style={{ width: "34px", height: "34px", borderRadius: "6px", objectFit: "cover", flexShrink: 0, boxShadow: "0 1px 6px rgba(0,0,0,0.45)" }}
+                            />
+                          ) : (
+                            <div className={`${styles.avatar} ${styles.avatarSong}`} aria-hidden="true">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </div>
+                          )}
+                          <span className={styles.nameCellText}>{song.name}</span>
                         </div>
-                        <span className={styles.nameCellText}>{song.name}</span>
-                      </div>
-                    </td>
-                    <td className={`${styles.td} ${styles.tdMuted}`}>
-                      {song.artists && song.artists.length > 0
-                        ? song.artists.map((a) => a.name).join(", ")
-                        : "—"}
-                    </td>
-                    <td className={`${styles.td} ${styles.tdMuted}`}>{song.album?.name || "—"}</td>
-                    <td className={`${styles.td} ${styles.tdMuted}`}>
-                      {song.genre
-                        ? <span className={styles.genreTag}>{song.genre}</span>
-                        : <span className={styles.emptyCell}>—</span>}
-                    </td>
-                    <td className={`${styles.td} ${styles.tdMuted}`}>{formatDuration(song.duration)}</td>
-                    <td className={`${styles.td} ${styles.tdActions}`}>
-                      <button
-                        type="button"
-                        className={`${styles.actionBtn} ${styles.editBtn}`}
-                        title="Edit song"
-                        aria-label={`Edit ${song.name}`}
-                        onClick={() => { setSelectedSong(song); setSongSubmitError(null); setEditModalOpen(true); }}
-                      >
-                        <PencilIcon />
-                        <span>Edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                        title="Delete song"
-                        aria-label={`Delete ${song.name}`}
-                        onClick={() => handleSongDelete(song.id)}
-                      >
-                        <TrashIcon />
-                        <span>Delete</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className={`${styles.td} ${styles.tdMuted}`}>
+                        {song.artists && song.artists.length > 0
+                          ? song.artists.map((a) => a.name).join(", ")
+                          : "—"}
+                      </td>
+                      <td className={`${styles.td} ${styles.tdMuted}`}>{song.album?.name || "—"}</td>
+                      <td className={`${styles.td} ${styles.tdMuted}`}>
+                        {song.genre
+                          ? <span className={styles.genreTag}>{song.genre}</span>
+                          : <span className={styles.emptyCell}>—</span>}
+                      </td>
+                      <td className={`${styles.td} ${styles.tdMuted}`}>{formatDuration(song.duration)}</td>
+                      <td className={styles.td} style={{ overflow: "visible", whiteSpace: "normal", padding: "0.4rem 0.75rem" }}>
+                        <MiniPlayer src={song.audioUrl} />
+                      </td>
+                      <td className={`${styles.td} ${styles.tdActions}`}>
+                        <button
+                          type="button"
+                          className={`${styles.actionBtn} ${styles.editBtn}`}
+                          title="Edit song"
+                          aria-label={`Edit ${song.name}`}
+                          onClick={() => { setSelectedSong(song); setSongSubmitError(null); setEditModalOpen(true); }}
+                        >
+                          <PencilIcon />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                          title="Delete song"
+                          aria-label={`Delete ${song.name}`}
+                          onClick={() => handleSongDelete(song.id)}
+                        >
+                          <TrashIcon />
+                          <span>Delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

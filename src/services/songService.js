@@ -32,8 +32,25 @@ function normalizeSong(raw) {
     : [];
 
   const album = raw.album || null;
+  // Comprehensively check all possible field names the Rails backend may return
   const albumCoverUrl = resolveUrl(
-    album?.cover_image_url ?? album?.avatarUrl ?? album?.image_url ?? null
+    album?.cover_image_url ??
+    album?.cover_url ??
+    album?.avatar_url ??
+    album?.avatarUrl ??
+    album?.image_url ??
+    album?.imageUrl ??
+    null
+  );
+
+  // Comprehensively check all possible audio URL field names
+  const audioUrl = resolveUrl(
+    raw.audio_url ??
+    raw.audioUrl ??
+    raw.file_url ??
+    raw.fileUrl ??
+    raw.url ??
+    null
   );
 
   return {
@@ -47,7 +64,7 @@ function normalizeSong(raw) {
     album: album
       ? { id: album.id, name: album.name, coverUrl: albumCoverUrl }
       : null,
-    audioUrl: resolveUrl(raw.audio_url || raw.audioUrl || null),
+    audioUrl,
   };
 }
 
