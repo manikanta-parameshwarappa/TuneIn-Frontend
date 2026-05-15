@@ -1,28 +1,42 @@
 import axiosInstance from "./axiosInstance";
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+
+/**
+ * Resolve a potentially relative avatar path to a full URL.
+ * The Rails backend returns only_path: true paths like /rails/active_storage/blobs/...
+ */
+function resolveAvatarUrl(path) {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE}${path}`;
+}
+
 /**
  * Normalize a raw artist object from the API into a flat shape.
  *
  * The backend returns:
  *   {
- *     id, bio,
- *     user: { id, name, email, role, avatar },
+ *     id, bio, dob,
+ *     user: { id, name, email, role, dob, avatar },
  *     created_at, updated_at
  *   }
  *
  * We flatten it to:
- *   { id, name, bio, email, avatarUrl }
+ *   { id, name, bio, dob, email, avatarUrl }
  *
  * @param {object} raw
- * @returns {{ id: number, name: string, bio: string|null, email: string, avatarUrl: string|null }}
+ * @returns {{ id: number, name: string, bio: string|null, dob: string|null, email: string, avatarUrl: string|null }}
  */
 function normalizeArtist(raw) {
+  const rawAvatar = raw.user?.avatar ?? raw.avatar_url ?? raw.avatarUrl ?? raw.image_url ?? null;
   return {
     id: raw.id,
     name: raw.user?.name ?? raw.name ?? "",
     bio: raw.bio ?? null,
+    dob: raw.dob ?? raw.user?.dob ?? null,
     email: raw.user?.email ?? raw.email ?? "",
-    avatarUrl: raw.user?.avatar ?? raw.avatar_url ?? raw.avatarUrl ?? raw.image_url ?? null,
+    avatarUrl: resolveAvatarUrl(rawAvatar),
   };
 }
 
@@ -60,11 +74,17 @@ function buildArtistBody(payload) {
     const fd = new FormData();
     fd.append("name", payload.name);
     fd.append("email", payload.email);
+    if (payload.dob) fd.append("dob", payload.dob);
     if (payload.bio) fd.append("bio", payload.bio);
     fd.append("avatar", payload.avatarFile, payload.avatarFile.name);
     return fd;
   }
-  return { name: payload.name, email: payload.email, bio: payload.bio || null };
+  return {
+    name: payload.name,
+    email: payload.email,
+    dob: payload.dob || null,
+    bio: payload.bio || null,
+  };
 }
 
 /**
@@ -75,7 +95,10 @@ function buildArtistBody(payload) {
  */
 export async function createArtist(payload) {
   const body = buildArtistBody(payload);
-  const { data } = await axiosInstance.post("/artists", body);
+  const config = body instanceof FormData
+    ? { headers: { "Content-Type": undefined } }
+    : {};
+  const { data } = await axiosInstance.post("/artists", body, config);
   return normalizeArtist(data);
 }
 
@@ -88,7 +111,10 @@ export async function createArtist(payload) {
  */
 export async function updateArtist(id, payload) {
   const body = buildArtistBody(payload);
-  const { data } = await axiosInstance.put(`/artists/${id}`, body);
+  const config = body instanceof FormData
+    ? { headers: { "Content-Type": undefined } }
+    : {};
+  const { data } = await axiosInstance.put(`/artists/${id}`, body, config);
   return normalizeArtist(data);
 }
 

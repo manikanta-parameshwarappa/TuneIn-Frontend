@@ -85,6 +85,7 @@ export function ArtistModal({ open, onClose, onSubmit, artist, submitting = fals
         setForm({
           name: artist.name || "",
           email: artist.email || "",
+          dob: artist.dob || "",
           bio: artist.bio || "",
         });
         setAvatarPreview(artist.avatarUrl || artist.image_url || null);
@@ -169,6 +170,7 @@ export function ArtistModal({ open, onClose, onSubmit, artist, submitting = fals
     onSubmit({
       name: form.name.trim(),
       email: form.email.trim(),
+      dob: form.dob || null,
       bio: form.bio.trim() || null,
       avatarFile: avatarFile || null,
     });
@@ -328,6 +330,27 @@ export function ArtistModal({ open, onClose, onSubmit, artist, submitting = fals
                 {errors.email && (
                   <p id="email-error" className={styles.errorMsg} role="alert">
                     {errors.email}
+                  </p>
+                )}
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label htmlFor="artist-dob" className={styles.label}>
+                  Date of Birth <span className={styles.optional}>(optional)</span>
+                </label>
+                <input
+                  id="artist-dob"
+                  name="dob"
+                  type="date"
+                  className={`${styles.input} ${errors.dob ? styles.inputError : ""}`}
+                  value={form.dob}
+                  onChange={handleChange}
+                  aria-describedby={errors.dob ? "dob-error" : undefined}
+                  aria-invalid={!!errors.dob}
+                />
+                {errors.dob && (
+                  <p id="dob-error" className={styles.errorMsg} role="alert">
+                    {errors.dob}
                   </p>
                 )}
               </div>
