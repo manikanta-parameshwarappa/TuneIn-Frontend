@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ArtistModal } from "../../components/ArtistModal/ArtistModal";
+import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 import { fetchArtists, createArtist, updateArtist, deleteArtist } from "../../services/artistService";
 import styles from "./Artists.module.css";
 
@@ -88,8 +89,13 @@ export function Artists() {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
-  
+
   const [selectedArtist, setSelectedArtist] = useState(null);
+
+  /* ── Confirm-delete state ───────────────────────────── */
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   /* ── Load artists on mount ─────────────────────────── */
   const loadArtists = useCallback(async () => {
@@ -154,17 +160,28 @@ export function Artists() {
     setModalOpen(false);
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm("Are you sure you want to delete this artist?")) return;
+  function handleDelete(id) {
+    const artist = artists.find((a) => a.id === id);
+    setDeleteError(null);
+    setPendingDelete({ id, name: artist?.name || "this artist" });
+  }
+
+  async function handleConfirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      await deleteArtist(id);
-      setArtists((prev) => prev.filter((a) => a.id !== id));
+      await deleteArtist(pendingDelete.id);
+      setArtists((prev) => prev.filter((a) => a.id !== pendingDelete.id));
+      setPendingDelete(null);
     } catch (err) {
-      const message =
+      setDeleteError(
         err?.response?.data?.message ||
         err?.message ||
-        "Failed to delete artist. Please try again.";
-      alert(message);
+        "Failed to delete artist. Please try again."
+      );
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -294,6 +311,21 @@ export function Artists() {
         artist={selectedArtist}
         submitting={submitting}
         serverError={submitError}
+      />
+
+      <ConfirmModal
+        open={!!pendingDelete}
+        title="Delete artist?"
+        message={
+          pendingDelete
+            ? `"${pendingDelete.name}" will be permanently removed. This action cannot be undone.${deleteError ? `\n\nError: ${deleteError}` : ""}`
+            : undefined
+        }
+        confirmLabel={deleting ? "Deleting…" : "Yes, delete"}
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => { if (!deleting) { setPendingDelete(null); setDeleteError(null); } }}
       />
     </main>
   );

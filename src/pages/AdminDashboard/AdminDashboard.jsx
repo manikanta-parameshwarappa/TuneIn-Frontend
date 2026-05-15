@@ -5,6 +5,7 @@ import { ArtistModal } from "../../components/ArtistModal/ArtistModal";
 import { AlbumModal } from "../../components/AlbumModal/AlbumModal";
 import { SongUploadModal } from "../../components/SongModals/SongUploadModal";
 import { SongEditModal } from "../../components/SongModals/SongEditModal";
+import { ConfirmModal } from "../../components/ConfirmModal/ConfirmModal";
 import {
   fetchArtists,
   createArtist,
@@ -120,6 +121,12 @@ export function AdminDashboard() {
   const [songSubmitError, setSongSubmitError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  /* ── Confirm-delete modal state ─────────────────────── */
+  // pendingDelete: { id, type: "artist"|"album"|"song", name: string } | null
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   /* ── Load data ──────────────────────────────────────── */
   const loadArtists = useCallback(async () => {
     setArtistsLoading(true);
@@ -201,14 +208,10 @@ export function AdminDashboard() {
     }
   }
 
-  async function handleArtistDelete(id) {
-    if (!window.confirm("Are you sure you want to delete this artist?")) return;
-    try {
-      await deleteArtist(id);
-      setArtists((prev) => prev.filter((a) => a.id !== id));
-    } catch (err) {
-      alert(err?.response?.data?.message || err?.message || "Failed to delete artist.");
-    }
+  function handleArtistDelete(id) {
+    const artist = artists.find((a) => a.id === id);
+    setDeleteError(null);
+    setPendingDelete({ id, type: "artist", name: artist?.name || "this artist" });
   }
 
   /* ── Album handlers ─────────────────────────────────── */
@@ -231,14 +234,10 @@ export function AdminDashboard() {
     }
   }
 
-  async function handleAlbumDelete(id) {
-    if (!window.confirm("Are you sure you want to delete this album?")) return;
-    try {
-      await deleteAlbum(id);
-      setAlbums((prev) => prev.filter((a) => a.id !== id));
-    } catch (err) {
-      alert(err?.response?.data?.message || err?.message || "Failed to delete album.");
-    }
+  function handleAlbumDelete(id) {
+    const album = albums.find((a) => a.id === id);
+    setDeleteError(null);
+    setPendingDelete({ id, type: "album", name: album?.name || "this album" });
   }
 
   /* ── Song handlers ──────────────────────────────────── */
@@ -270,13 +269,38 @@ export function AdminDashboard() {
     }
   }
 
-  async function handleSongDelete(id) {
-    if (!window.confirm("Are you sure you want to delete this song?")) return;
+  function handleSongDelete(id) {
+    const song = songs.find((s) => s.id === id);
+    setDeleteError(null);
+    setPendingDelete({ id, type: "song", name: song?.name || "this song" });
+  }
+
+  /* ── Unified confirm-delete execution ───────────────── */
+  async function handleConfirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    const { id, type } = pendingDelete;
     try {
-      await deleteSong(id);
-      setSongs((prev) => prev.filter((s) => s.id !== id));
+      if (type === "artist") {
+        await deleteArtist(id);
+        setArtists((prev) => prev.filter((a) => a.id !== id));
+      } else if (type === "album") {
+        await deleteAlbum(id);
+        setAlbums((prev) => prev.filter((a) => a.id !== id));
+      } else if (type === "song") {
+        await deleteSong(id);
+        setSongs((prev) => prev.filter((s) => s.id !== id));
+      }
+      setPendingDelete(null);
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || "Failed to delete song.");
+      setDeleteError(
+        err?.response?.data?.message ||
+        err?.message ||
+        `Failed to delete ${type}.`
+      );
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -325,6 +349,13 @@ export function AdminDashboard() {
         {!artistsLoading && !artistsError && filteredArtists.length > 0 && (
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
+              <colgroup>
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "24%" }} />
+                <col style={{ width: "24%" }} />
+                <col style={{ width: "30%" }} />
+                <col style={{ width: "18%" }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th className={styles.th}>#</th>
@@ -357,9 +388,7 @@ export function AdminDashboard() {
                     <td className={`${styles.td} ${styles.tdMuted}`}>{artist.email || "—"}</td>
                     <td className={`${styles.td} ${styles.tdBio}`}>
                       {artist.bio
-                        ? artist.bio.length > 80
-                          ? artist.bio.slice(0, 80).trimEnd() + "…"
-                          : artist.bio
+                        ? <span>{artist.bio}</span>
                         : <span className={styles.emptyCell}>—</span>}
                     </td>
                     <td className={`${styles.td} ${styles.tdActions}`}>
@@ -438,6 +467,14 @@ export function AdminDashboard() {
         {!albumsLoading && !albumsError && filteredAlbums.length > 0 && (
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
+              <colgroup>
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "22%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "24%" }} />
+                <col style={{ width: "18%" }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th className={styles.th}>#</th>
@@ -470,9 +507,7 @@ export function AdminDashboard() {
                     <td className={`${styles.td} ${styles.tdMuted}`}>{formatDate(album.releasedDate)}</td>
                     <td className={`${styles.td} ${styles.tdBio}`}>
                       {album.description
-                        ? album.description.length > 80
-                          ? album.description.slice(0, 80).trimEnd() + "…"
-                          : album.description
+                        ? <span>{album.description}</span>
                         : <span className={styles.emptyCell}>—</span>}
                     </td>
                     <td className={`${styles.td} ${styles.tdActions}`}>
@@ -551,6 +586,15 @@ export function AdminDashboard() {
         {!songsLoading && !songsError && filteredSongs.length > 0 && (
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
+              <colgroup>
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "20%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "20%" }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th className={styles.th}>#</th>
@@ -713,6 +757,22 @@ export function AdminDashboard() {
         song={selectedSong}
         submitting={songSubmitting}
         serverError={songSubmitError}
+      />
+
+      {/* Confirm delete modal */}
+      <ConfirmModal
+        open={!!pendingDelete}
+        title={`Delete ${pendingDelete?.type ?? "item"}?`}
+        message={
+          pendingDelete
+            ? `"${pendingDelete.name}" will be permanently removed. This action cannot be undone.${deleteError ? `\n\nError: ${deleteError}` : ""}`
+            : undefined
+        }
+        confirmLabel={deleting ? "Deleting…" : "Yes, delete"}
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => { if (!deleting) { setPendingDelete(null); setDeleteError(null); } }}
       />
     </main>
   );
