@@ -1,58 +1,54 @@
 # Active Context
 
 ## Current State
-Core frontend infrastructure complete. Admin Dashboard revamped into a unified, single-page tabbed CRUD UI covering Artists, Albums, and Songs. Each tab has a live search bar, a structured data table with all entity attributes, and Edit/Delete action buttons. All CRUD operations wire directly to the existing service layer. The old standalone `/admin/artists`, `/admin/albums`, `/admin/songs` routes remain but the primary admin experience now lives entirely at `/admin`. Navbar uses an avatar dropdown. Full `/profile` page fully wired to the real backend API.
+Core frontend infrastructure complete. Home page revamped into a full Spotify-style layout with a resizable sidebar for playlist CRUD and a rich main content area. Admin Dashboard remains a unified single-page tabbed CRUD UI covering Artists, Albums, and Songs. Navbar uses an avatar dropdown. Full `/profile` page wired to the real backend API.
 
 ## What Was Just Implemented
-- **Admin Dashboard Revamp** — `src/pages/AdminDashboard/AdminDashboard.jsx` and `src/pages/AdminDashboard/AdminDashboard.module.css`:
-  - Replaced the old quick-actions card grid with a **three-tab layout**: Artists | Albums | Songs.
-  - Each tab contains: a **search bar** (live client-side filter), a **+ Add/Upload button**, and a **data table** showing all entity attributes with an **Actions column** (Edit + Delete).
-  - Artists table columns: `#`, Name (with initials avatar), Email, Bio, Actions.
-  - Albums table columns: `#`, Album Name (with disc avatar), Artist, Released, Description, Actions.
-  - Songs table columns: `#`, Song Name (with play icon avatar), Artists, Album, Genre (badge), Duration, Actions.
-  - Tab bar is sticky below the Navbar; each tab shows a count badge.
-  - **Loading state**: animated shimmer skeleton replaces the table while data fetches.
-  - **Error state**: inline error banner with Retry button.
-  - **Empty state**: contextual illustration + CTA button.
-  - All CRUD operations use existing service functions (`artistService`, `albumService`, `songService`).
-  - All existing modals (`ArtistModal`, `AlbumModal`, `SongUploadModal`, `SongEditModal`) are reused unchanged.
-  - Fully responsive: toolbar stacks on mobile, action button labels hide on narrow screens, tab bar scrolls horizontally.
+- **Homepage Revamp** — [`src/pages/Home/Home.jsx`](../src/pages/Home/Home.jsx) and [`src/pages/Home/Home.module.css`](../src/pages/Home/Home.module.css):
+  - **Authenticated view**: Full Spotify-style app layout (`display: flex; height: calc(100vh - 72px); overflow: hidden`).
+    - **Left — PlaylistSidebar** ([`src/components/PlaylistSidebar/PlaylistSidebar.jsx`](../src/components/PlaylistSidebar/PlaylistSidebar.jsx)):
+      - Drag-resizable via a `col-resize` handle (min 60 px, max 420 px, default 280 px).
+      - Collapse toggle: click the "Your Library" header button to collapse to icon-only (60 px) or expand.
+      - **Full playlist CRUD**: Create (modal with name + description), Edit (pre-filled modal), Delete (confirmation modal).
+      - Live client-side search filter.
+      - Animated shimmer skeleton loading state; empty state with "New Playlist" CTA.
+      - Per-item hover actions (edit pencil + trash).
+      - Hidden on mobile (`@media max-width: 768px`).
+    - **Right — Main scroll area**:
+      - **Greeting banner**: time-aware greeting (Good morning/afternoon/evening), quick stat cards (Songs / Albums / Artists count with coloured values).
+      - **Featured row**: 3 horizontal cards — top album, top artist, top song — each with cover/fallback, type badge, name, subtitle, and "Play Now" pill button.
+      - **Albums grid**: `auto-fill minmax(150px)` CSS grid. Each card: square cover art (gradient fallback), hover-animated play button overlay, album name + director + year.
+      - **Artists row**: horizontal overflow scroll. Each card: 90 px circular avatar (image or initials fallback), hover darken overlay with play button, name + "Artist" label.
+      - **Songs list**: Spotify-style column layout (`#`, thumbnail, title/artist, album, ♥ like, ⏱ duration). Hover row highlight; "currently playing" blue highlight; show/hide "show all N songs" button; all with skeleton loading and empty states.
+  - **Public view** (unauthenticated): Two-column hero (left: title + CTA buttons, right: three animated floating cards), feature cards grid below.
+  - **New service**: [`src/services/playlistService.js`](../src/services/playlistService.js) — `fetchPlaylists`, `createPlaylist`, `updatePlaylist`, `deletePlaylist`, `addSongToPlaylist`, `removeSongFromPlaylist` with graceful no-op fallbacks if the API endpoint doesn't exist yet.
 
 ## What Was Previously Implemented
-- **Admin Dashboard UI/UX Modernization** — `src/pages/AdminDashboard/AdminDashboard.jsx`: Temporarily removed the Overview section as requested. Shifted into a two-column grid (`.mainContent` and `.sidebar`). Upgraded "Quick Actions" to an elegant, modernized card layout with a linear gradient background, box-shadow on hover, and an animated right arrow indicating interactivity. Session info is now cleanly displayed inside the sticky sidebar.
-- **`userService.js`**: `src/services/userService.js` — service layer with `updateProfile(fields)` (PATCH `/api/users/edit` with changed-fields-only diff), `updatePassword(currentPassword, newPassword)`, `uploadAvatar(file, onProgress)` (multipart/form-data with upload progress callback), and `removeAvatar()`. All methods use `axiosInstance` (Bearer token + silent refresh).
-- **Profile page**: `src/pages/Profile/Profile.jsx` — three-panel layout (avatar card | profile info card | password card). Avatar section: 110 px circular frame with initials fallback, dark overlay on hover, drag-and-drop support, file picker (JPG/PNG/WEBP ≤2 MB), instant `URL.createObjectURL` preview, upload progress spinner + percentage, Save/Remove/Cancel actions. Profile form: Name, Email, Date of Birth fields pre-populated from `user` context; inline real-time validation; diff-based payload (only changed fields sent). Password form: Current / New / Confirm fields with independent eye-toggles; live password strength meter (0–4 bar, colour-coded); match validation; fields cleared on success. Global toast/snackbar (success / error / info) auto-dismisses after 4 s. Loading skeleton shown while `initializing === true`.
-- **Navbar avatar dropdown**: `src/components/Navbar/Navbar.jsx` — clickable avatar button opens a dropdown menu containing: display name, Profile link, and Logout button. Dropping closes on outside click.
-
-## What Was Previously Built
-- **Role-based access control**: `normalizeAuth()` in `src/services/authService.js` extracts `role`, defaulting to `"listener"`. The `user` shape is `{ id, name, email, role }`.
-- **Artist API response shape** (updated): Backend GET `/artists` returns `{ id, bio, created_at, updated_at, user: { id, name, email, role, avatar } }`. The `name`, `email`, and `avatar` fields are nested inside `user`. `normalizeArtist()` in `src/services/artistService.js` reads `raw.user?.name`, `raw.user?.email`, `raw.user?.avatar` with fallbacks for backward compatibility.
-- **`isAdmin` flag in AuthContext**: `src/context/AuthContext.jsx` computes `isAdmin = !!accessToken && user?.role === "admin"`.
-- **`AdminRoute` guard**: `src/routes/AdminRoute.jsx` — unauthenticated → `/login`, non-admin → `/403`, admin → outlet.
-- **403 Forbidden page**: `src/pages/NotFound/NotFound.jsx` with `variant="forbidden"` prop.
-- In-memory access token management via `AuthContext` + `useAuth` hook
-- Axios dual-instance pattern with request/response interceptors
+- **Admin Dashboard Revamp** — `src/pages/AdminDashboard/AdminDashboard.jsx` and `src/pages/AdminDashboard/AdminDashboard.module.css`:
+  - Three-tab layout: Artists | Albums | Songs.
+  - Each tab: search bar, + Add/Upload button, data table with all attributes, Actions column (Edit + Delete).
+  - Tab bar is sticky; animated shimmer skeleton; inline error banner; empty state with CTA.
+  - All CRUD via existing service functions and modals.
+- **`userService.js`**: `updateProfile`, `updatePassword`, `uploadAvatar`, `removeAvatar`.
+- **Profile page**: three-panel layout (avatar card | profile info | password card), full wired to real API.
+- **Navbar avatar dropdown**: clickable avatar → dropdown with name, Profile link, Logout button.
 
 ## Next Steps
-1. Optionally restore the Admin Overview/stats section above the tab bar.
-2. Add more protected pages (e.g., `/library`, `/search`, `/player`).
-3. Build music playback UI (audio player bar, queue management).
+1. Wire up the audio player bar at the bottom (playback state shared via context).
+2. Add `POST /playlists` backend endpoint so playlist CRUD persists server-side.
+3. Add Artist / Album detail pages (click-through from Home grid/row).
+4. Add search page.
+5. Optionally restore Admin Overview/stats section above the tab bar.
 
 ## Active Decisions
-- Modal UI approach used for CRUD (Artists, Albums, and Songs) rather than Drawer for better user focus and UX consistency.
-- Bulk song upload leverages `FormData` and native drag & drop, mapping multiple audio files to individual metadata forms before submission. Includes an inline custom audio player.
-- API response normalisation for artists, albums, and songs lives entirely in their respective service files.
+- Modal UI approach used for CRUD (Artists, Albums, Songs, Playlists) rather than Drawer.
+- Playlist CRUD uses optimistic local-state fallback when backend endpoint not yet available.
+- API response normalisation for artists, albums, and songs lives in their respective service files.
 - **UI Alignment Convention**: For all future pages implementing `max-width` constraints (like `1200px`), horizontal padding `padding: 0;` should be used on `.header`, `.headerInner`, and `.container` above `1200px`. A `@media (max-width: 1200px)` breakpoint must be explicitly provided to re-introduce horizontal padding (`1.5rem`) so content stays off the window edges on smaller viewports.
 - **Modern UI Guidelines**:
   - Backgrounds: Use deeper, darker blue/gray gradients (e.g., `linear-gradient(to bottom right, #111827, #0f172a)` or `#0b1120`).
   - Borders: Use subtle, low-opacity white/blue shades (e.g., `rgba(255, 255, 255, 0.05)` or `rgba(59, 130, 246, 0.2)`).
   - Hover Effects: Incorporate slight vertical translation (`transform: translateY(-1px)`) combined with a soft, expansive box shadow (`box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4)`).
-  - Radiuses: Use larger border radiuses (e.g., `12px`, `16px` for modals, `40px` for pill-shaped elements like audio players).
-  - Custom Scrollbars: Employ transparent tracks with subtle gray thumbs (`rgba(156, 163, 175, 0.2)`) inside modal bodies to maintain a native dark theme feel.
-  - Multi-Select: Use custom dropdown components with checkboxes and a search bar rather than native `<select multiple>`.
-  - **Primary Button Style Convention** (established in Profile page, mirrors Admin Dashboard action cards):
-    - Base: `background: rgba(17, 24, 39, 0.7)`, `border: 1px solid rgba(59, 130, 246, 0.35)`, `border-radius: 12px`, `color: #e2e8f0`.
-    - Gradient overlay: `::before` pseudo-element with `linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, transparent 100%)`, `opacity: 0` at rest, `opacity: 1` on hover.
-    - Hover: `border-color: rgba(59, 130, 246, 0.6)`, `transform: translateY(-3px)`, `box-shadow: 0 10px 24px -8px rgba(0,0,0,0.5), 0 0 16px -4px rgba(59,130,246,0.25)`.
-    - Use `position: relative; overflow: hidden` on the button and `z-index: 1` on inner children so the overlay doesn't bleed over text.
-    - Apply this pattern to all primary CTA buttons across new pages (save, submit, confirm actions).
+  - Radiuses: Use larger border radiuses (e.g., `12px`, `16px` for modals, `40px` for pill-shaped elements).
+  - Custom Scrollbars: Transparent tracks with subtle gray thumbs (`rgba(156, 163, 175, 0.2)`).
+  - **Primary Button Style Convention**: Base `background: rgba(17, 24, 39, 0.7)`, `border: 1px solid rgba(59, 130, 246, 0.35)`, `border-radius: 12px`, `color: #e2e8f0`. Hover: `border-color: rgba(59, 130, 246, 0.6)`, `transform: translateY(-3px)`.

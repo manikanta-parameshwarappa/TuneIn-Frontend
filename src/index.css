@@ -53,7 +53,8 @@ body {
   min-height: 100vh;
 }
 
-.app-shell main {
+/* Home page manages its own full-height layout via appLayout class */
+.app-shell > main {
   flex: 1;
 }
 
