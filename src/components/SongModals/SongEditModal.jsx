@@ -3,6 +3,10 @@ import styles from "./SongModals.module.css";
 import { fetchArtists } from "../../services/artistService";
 import { fetchAlbums } from "../../services/albumService";
 
+/* ── helpers ──────────────────────────────────────────────── */
+// Normalise any id to a number for consistent comparison
+const toNum = (v) => Number(v);
+
 /* ── icons ─────────────────────────────────────────────────── */
 const CloseIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -126,12 +130,15 @@ export function SongEditModal({
     albumId: "",
     genre: "",
     duration: "",
-    artistIds: [],
+    artistIds: [],   // stored as numbers
+    audioFile: null, // File | null — only set when user picks a replacement
   });
   const [errors, setErrors] = useState({});
   const [artists, setArtists] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState(null); // existing audio URL
+  const audioFileRef = useRef(null);
 
   /* Lock body scroll when open */
   useEffect(() => {
@@ -141,15 +148,23 @@ export function SongEditModal({
       if (song) {
         setFormData({
           name: song.name || "",
-          albumId: String(song.albumId || ""),
+          albumId: song.albumId ? String(song.albumId) : "",
           genre: song.genre || "",
           duration: song.duration || "",
-          artistIds: song.artistIds ? song.artistIds.map(String) : [],
+          // Store as numbers so ArtistMultiSelect value.includes(opt.id) works
+          artistIds: song.artistIds ? song.artistIds.map(toNum) : [],
+          audioFile: null,
         });
+        setAudioPreviewUrl(song.audioUrl || null);
       }
       setErrors({});
     } else {
       document.body.style.overflow = "";
+      // Revoke any object URL we created
+      if (audioPreviewUrl && audioPreviewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(audioPreviewUrl);
+      }
+      setAudioPreviewUrl(null);
     }
   }, [isOpen, song]);
 
@@ -174,6 +189,18 @@ export function SongEditModal({
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
+  const handleAudioFileChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) return;
+    // Revoke previous blob URL if any
+    if (audioPreviewUrl && audioPreviewUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(audioPreviewUrl);
+    }
+    setFormData((prev) => ({ ...prev, audioFile: file }));
+    setAudioPreviewUrl(URL.createObjectURL(file));
+    if (errors.audioFile) setErrors((prev) => ({ ...prev, audioFile: "" }));
+  };
+
   const validate = () => {
     const next = {};
     let valid = true;
@@ -188,11 +215,12 @@ export function SongEditModal({
     if (submitting) return;
     if (validate()) {
       onEdit({
-        name: formData.name,
-        albumId: formData.albumId,
-        genre: formData.genre,
-        duration: formData.duration,
+        name:      formData.name,
+        albumId:   formData.albumId,
+        genre:     formData.genre,
+        duration:  formData.duration,
         artistIds: formData.artistIds,
+        audioFile: formData.audioFile || undefined,
       });
     }
   };
@@ -304,13 +332,82 @@ export function SongEditModal({
               <ArtistMultiSelect
                 options={artists}
                 value={formData.artistIds}
-                onChange={(vals) => handleChange("artistIds", vals)}
+                onChange={(vals) => handleChange("artistIds", vals.map(toNum))}
                 error={errors.artistIds}
                 disabled={submitting || loadingOptions}
               />
               {errors.artistIds && (
                 <span className={styles.errorMsg}>{errors.artistIds}</span>
               )}
+            </div>
+
+            {/* Audio file replacement */}
+            <div className={`${styles.fieldGroup} ${styles.fieldGroupFull}`}>
+              <label className={styles.label}>Replace Audio File</label>
+              {/* Show existing audio player if we have a URL */}
+              {audioPreviewUrl && (
+                <div style={{ marginBottom: "0.5rem" }}>
+                  <audio
+                    src={audioPreviewUrl}
+                    controls
+                    style={{ width: "100%", height: "36px", borderRadius: "8px", accentColor: "#3b82f6" }}
+                  />
+                  {formData.audioFile && (
+                    <span style={{ fontSize: "0.78rem", color: "#6ee7b7", marginTop: "0.25rem", display: "block" }}>
+                      ✓ New file selected: {formData.audioFile.name}
+                    </span>
+                  )}
+                </div>
+              )}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <input
+                  ref={audioFileRef}
+                  type="file"
+                  accept="audio/*"
+                  style={{ display: "none" }}
+                  onChange={handleAudioFileChange}
+                  disabled={submitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => audioFileRef.current?.click()}
+                  disabled={submitting}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "0.4rem",
+                    padding: "0.5rem 1rem", borderRadius: "8px",
+                    background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.35)",
+                    color: "#93c5fd", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer",
+                    transition: "all 0.18s ease",
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  {audioPreviewUrl ? "Replace Audio" : "Upload Audio"}
+                </button>
+                {formData.audioFile && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (audioPreviewUrl && audioPreviewUrl.startsWith("blob:")) URL.revokeObjectURL(audioPreviewUrl);
+                      setFormData((prev) => ({ ...prev, audioFile: null }));
+                      setAudioPreviewUrl(song?.audioUrl || null);
+                      if (audioFileRef.current) audioFileRef.current.value = "";
+                    }}
+                    disabled={submitting}
+                    style={{
+                      background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)",
+                      color: "#fca5a5", fontSize: "0.8rem", fontWeight: 600,
+                      padding: "0.4rem 0.75rem", borderRadius: "8px", cursor: "pointer",
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              {errors.audioFile && <span className={styles.errorMsg}>{errors.audioFile}</span>}
             </div>
           </div>
         </div>

@@ -120,20 +120,43 @@ export async function uploadSongs(songs, onProgress) {
 }
 
 /**
- * Update song metadata.
+ * Update song metadata (and optionally replace the audio file).
  * The Rails backend uses:
- *   params.require(:song).permit(:name, :duration, :genre)
- *   params[:album_id]   → passed outside :song wrapper
- *   params[:artist_ids] → passed outside :song wrapper
+ *   params.require(:song).permit(:name, :duration, :genre, :album_id)
+ *   params[:album_id]    → also accepted as top-level for album reassignment
+ *   params[:artist_ids]  → top-level array for artist reassignment
+ *   params[:audio_file]  → top-level file for audio replacement
+ *
+ * When payload.audioFile is provided we must use multipart/form-data.
+ * Otherwise we send JSON.
  */
 export async function updateSong(id, payload) {
+  if (payload.audioFile) {
+    // Multipart — needed when replacing the audio track
+    const fd = new FormData();
+    fd.append("song[name]", payload.name);
+    if (payload.duration) fd.append("song[duration]", payload.duration);
+    if (payload.genre)    fd.append("song[genre]",    payload.genre);
+    if (payload.albumId)  fd.append("song[album_id]", payload.albumId);
+    if (payload.albumId)  fd.append("album_id",       payload.albumId);
+    fd.append("audio_file", payload.audioFile, payload.audioFile.name);
+    (payload.artistIds || []).forEach((aid) => fd.append("artist_ids[]", aid));
+
+    const { data } = await axiosInstance.put(`/songs/${id}`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return normalizeSong(data);
+  }
+
+  // JSON — metadata-only update
   const { data } = await axiosInstance.put(`/songs/${id}`, {
     song: {
       name: payload.name,
       duration: payload.duration || null,
-      genre: payload.genre || null,
+      genre:    payload.genre    || null,
+      album_id: payload.albumId  || null,
     },
-    album_id: payload.albumId || null,
+    album_id:   payload.albumId  || null,
     artist_ids: payload.artistIds || [],
   });
   return normalizeSong(data);
