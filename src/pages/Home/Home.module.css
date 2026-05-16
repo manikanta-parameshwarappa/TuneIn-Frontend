@@ -718,6 +718,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.15rem;
+}
+
+.songRowQueueBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  color: #4b5563;
+  cursor: pointer;
+  transition: color 0.15s, background 0.12s;
+  opacity: 0;
+}
+
+.songRowQueueBtnVisible {
+  opacity: 1;
+}
+
+.songRowQueueBtn:hover {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .songRowLike {
@@ -742,6 +767,10 @@
 .songRowLike:hover {
   color: #e05c5c;
   transform: scale(1.15);
+}
+
+.albumPlayBtnActive {
+  background: #2563eb !important;
 }
 
 .songRowDuration {

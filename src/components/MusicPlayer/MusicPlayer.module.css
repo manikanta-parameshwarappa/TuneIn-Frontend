@@ -1,0 +1,378 @@
+/* ── Player Bar ──────────────────────────────────────────────────────────── */
+.playerBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  background: linear-gradient(to right, #0d1117, #111827, #0d1117);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Left — Song Info ────────────────────────────────────────────────────── */
+.playerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 220px;
+  max-width: 280px;
+  flex: 0 0 auto;
+}
+
+.songThumb {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.songThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.songThumbFallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.songThumbLoading {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.songInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  overflow: hidden;
+}
+
+.songName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.songArtist {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Center — Controls + Progress ───────────────────────────────────────── */
+.playerCenter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 700px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.controlBtn {
+  position: relative;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.controlBtn:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.06);
+  transform: scale(1.08);
+}
+
+.controlBtn:active {
+  transform: scale(0.96);
+}
+
+.controlBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.controlBtnActive {
+  color: #3b82f6 !important;
+}
+
+.activeDot {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: #3b82f6;
+  border-radius: 50%;
+}
+
+.playPauseBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  flex-shrink: 0;
+}
+
+.playPauseBtn:hover {
+  background: #2563eb;
+  transform: scale(1.06);
+  box-shadow: 0 0 28px rgba(59, 130, 246, 0.6);
+}
+
+.playPauseBtn:active {
+  transform: scale(0.96);
+}
+
+/* ── Loading ring inside play button ────────────────────────────────────── */
+.loadingRing {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Spinner path animation ─────────────────────────────────────────────── */
+.spinnerPath {
+  animation: spin 0.8s linear infinite;
+  transform-origin: center;
+}
+
+/* ── Progress Bar ───────────────────────────────────────────────────────── */
+.progressWrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeLabel {
+  font-size: 0.7rem;
+  color: #64748b;
+  min-width: 32px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.progressBar {
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+  padding: 6px 0;
+  user-select: none;
+}
+
+.progressTrack {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  overflow: visible;
+  position: relative;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  border-radius: 2px;
+  position: relative;
+  transition: width 0.1s linear;
+}
+
+.progressThumb {
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%) scale(0);
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+  transition: transform 0.15s;
+}
+
+.progressBar:hover .progressThumb {
+  transform: translateY(-50%) scale(1);
+}
+
+.progressBar:hover .progressTrack {
+  height: 5px;
+}
+
+.progressBar:hover .progressFill {
+  background: linear-gradient(90deg, #60a5fa, #93c5fd);
+}
+
+.progressTooltip {
+  position: absolute;
+  top: -22px;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  color: #f1f5f9;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ── Right — Volume + Queue ─────────────────────────────────────────────── */
+.playerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 180px;
+  max-width: 220px;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.volumeControl {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.volumeSliderWrapper {
+  width: 80px;
+}
+
+.volumeSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    #3b82f6 var(--vol, 80%),
+    rgba(255, 255, 255, 0.12) var(--vol, 80%)
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.4);
+  transition: transform 0.1s;
+}
+
+.volumeSlider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.volumeSlider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.4);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .playerBar {
+    height: 72px;
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+
+  .playerLeft {
+    min-width: 0;
+    max-width: 140px;
+  }
+
+  .songThumb {
+    width: 44px;
+    height: 44px;
+  }
+
+  .playerRight {
+    min-width: auto;
+  }
+
+  .volumeSliderWrapper {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .playerLeft {
+    max-width: 100px;
+  }
+
+  .controls {
+    gap: 0.2rem;
+  }
+
+  .playPauseBtn {
+    width: 38px;
+    height: 38px;
+  }
+}

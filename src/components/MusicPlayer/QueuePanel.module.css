@@ -1,0 +1,357 @@
+/* ── Queue Panel ─────────────────────────────────────────────────────────── */
+.queuePanel {
+  position: fixed;
+  bottom: 90px; /* sits above the player bar */
+  right: 0;
+  width: 360px;
+  height: calc(100vh - 90px - 72px); /* 72px = navbar height */
+  background: linear-gradient(to bottom, #0f172a, #0b1120);
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  z-index: 190;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.5);
+  animation: slideInRight 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.queueHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.25rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.queueHeaderLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.queueTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.queueCount {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.queueHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.queueHeaderBtn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.queueHeaderBtn:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.queueHeaderBtnActive {
+  color: #3b82f6 !important;
+}
+
+.queueCloseBtn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.queueCloseBtn:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+.queueBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.queueBody::-webkit-scrollbar {
+  width: 4px;
+}
+
+.queueBody::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.queueBody::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
+.queueSection {
+  padding: 0 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.queueSectionLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+  padding: 0.75rem 0.5rem 0.4rem;
+  margin: 0;
+}
+
+.queueSectionLabelFaded {
+  color: #334155;
+}
+
+/* ── Queue Item ──────────────────────────────────────────────────────────── */
+.queueItemWrapper {
+  border-radius: 8px;
+  transition: background 0.1s;
+}
+
+.queueItemWrapper.dragOver {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+}
+
+.queueItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+  position: relative;
+}
+
+.queueItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.queueItemCurrent {
+  background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.queueItemCurrent:hover {
+  background: rgba(59, 130, 246, 0.12) !important;
+}
+
+/* ── Drag Handle ─────────────────────────────────────────────────────────── */
+.dragHandle {
+  color: #334155;
+  cursor: grab;
+  padding: 0.15rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.1s;
+  flex-shrink: 0;
+}
+
+.queueItem:hover .dragHandle {
+  color: #64748b;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+/* ── Thumbnail ───────────────────────────────────────────────────────────── */
+.queueThumb {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.queueThumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.queueThumbFallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.queueThumbOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border-radius: 6px;
+}
+
+/* ── Equalizer animation (now playing) ──────────────────────────────────── */
+.eqBar1 { animation: eq1 0.8s ease-in-out infinite alternate; }
+.eqBar2 { animation: eq2 0.6s ease-in-out infinite alternate; }
+.eqBar3 { animation: eq3 0.9s ease-in-out infinite alternate; }
+.eqBar4 { animation: eq4 0.7s ease-in-out infinite alternate; }
+
+@keyframes eq1 { from { transform: scaleY(0.4) translateY(8px); } to { transform: scaleY(1) translateY(0); } }
+@keyframes eq2 { from { transform: scaleY(0.6) translateY(5px); } to { transform: scaleY(1) translateY(0); } }
+@keyframes eq3 { from { transform: scaleY(0.3) translateY(11px); } to { transform: scaleY(1) translateY(0); } }
+@keyframes eq4 { from { transform: scaleY(0.5) translateY(6px); } to { transform: scaleY(1) translateY(0); } }
+
+/* ── Queue Info ──────────────────────────────────────────────────────────── */
+.queueInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.queueSongName {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queueSongNameCurrent {
+  color: #60a5fa !important;
+  font-weight: 600;
+}
+
+.queueArtistName {
+  font-size: 0.72rem;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Duration ────────────────────────────────────────────────────────────── */
+.queueDuration {
+  font-size: 0.72rem;
+  color: #475569;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Remove Button ───────────────────────────────────────────────────────── */
+.removeBtn {
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.removeBtnVisible {
+  opacity: 1;
+}
+
+.removeBtn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.emptyQueue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.emptyQueueIcon {
+  width: 60px;
+  height: 60px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
+}
+
+.emptyQueueText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.emptyQueueSub {
+  font-size: 0.78rem;
+  color: #475569;
+  margin: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .queuePanel {
+    width: 100%;
+    bottom: 72px;
+    height: calc(100vh - 72px - 72px);
+  }
+}

@@ -6,6 +6,7 @@ import {
   updatePlaylist,
   deletePlaylist,
 } from "../../services/playlistService";
+import { usePlayer } from "../../context/PlayerContext";
 
 const MIN_WIDTH = 60;
 const MAX_WIDTH = 420;
@@ -78,6 +79,23 @@ function IconMusic() {
   );
 }
 
+function IconPlay() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+      <polygon points="5,3 19,12 5,21" />
+    </svg>
+  );
+}
+
+function IconPause() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+    </svg>
+  );
+}
+
 function IconChevronRight() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -87,9 +105,8 @@ function IconChevronRight() {
 }
 
 // ── PlaylistItem ─────────────────────────────────────────────────────────────
-function PlaylistItem({ playlist, collapsed, isActive, onSelect, onEdit, onDelete }) {
+function PlaylistItem({ playlist, collapsed, isActive, onSelect, onEdit, onDelete, onPlay, isCurrentlyPlaying }) {
   const [hovering, setHovering] = useState(false);
-  const [showActions, setShowActions] = useState(false);
 
   const initials = playlist.name
     .split(" ")
@@ -103,7 +120,7 @@ function PlaylistItem({ playlist, collapsed, isActive, onSelect, onEdit, onDelet
       className={`${styles.playlistItem} ${isActive ? styles.playlistItemActive : ""}`}
       onClick={() => onSelect(playlist)}
       onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => { setHovering(false); setShowActions(false); }}
+      onMouseLeave={() => setHovering(false)}
       title={collapsed ? playlist.name : ""}
     >
       <div className={styles.playlistAvatar}>
@@ -112,11 +129,22 @@ function PlaylistItem({ playlist, collapsed, isActive, onSelect, onEdit, onDelet
         ) : (
           <span className={styles.playlistAvatarInitials}>{initials}</span>
         )}
+        {/* Play overlay on avatar */}
+        {hovering && (
+          <div
+            className={styles.playlistAvatarOverlay}
+            onClick={(e) => { e.stopPropagation(); onPlay?.(playlist); }}
+          >
+            {isCurrentlyPlaying ? <IconPause /> : <IconPlay />}
+          </div>
+        )}
       </div>
 
       {!collapsed && (
         <div className={styles.playlistInfo}>
-          <span className={styles.playlistName}>{playlist.name}</span>
+          <span className={`${styles.playlistName} ${isCurrentlyPlaying ? styles.playlistNamePlaying : ""}`}>
+            {playlist.name}
+          </span>
           <span className={styles.playlistMeta}>
             <IconMusic />
             {playlist.songCount} songs
@@ -275,7 +303,8 @@ function DeleteConfirmModal({ playlist, onConfirm, onClose }) {
 }
 
 // ── PlaylistSidebar ──────────────────────────────────────────────────────────
-export function PlaylistSidebar({ activePlaylistId, onSelectPlaylist }) {
+export function PlaylistSidebar({ activePlaylistId, onSelectPlaylist, songs = [] }) {
+  const { playQueue, currentSong, isPlaying, togglePlay } = usePlayer();
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -372,6 +401,33 @@ export function PlaylistSidebar({ activePlaylistId, onSelectPlaylist }) {
     setDeletingPlaylist(null);
   }
 
+  // ── Play a playlist ──────────────────────────────────────────────────────
+  function handlePlayPlaylist(playlist) {
+    // Get songs from the playlist's song list (if loaded) or from the global songs pool
+    let playlistSongs = [];
+    if (Array.isArray(playlist.songs) && playlist.songs.length > 0) {
+      // playlist.songs may be full song objects or just IDs — try to match with the global pool
+      playlistSongs = playlist.songs
+        .map((s) => {
+          if (typeof s === "object" && s.audioUrl) return s;
+          const match = songs.find((gs) => gs.id === (s.id || s));
+          return match || null;
+        })
+        .filter(Boolean);
+    }
+    // Fallback: use all songs if no playlist-specific songs
+    if (!playlistSongs.length) playlistSongs = songs;
+    if (!playlistSongs.length) return;
+
+    // If this playlist is currently playing, toggle
+    const isCurrentPlaylist = playlistSongs.some((s) => s.id === currentSong?.id);
+    if (isCurrentPlaylist) {
+      togglePlay();
+    } else {
+      playQueue(playlistSongs, 0);
+    }
+  }
+
   // ── Filtered playlists ───────────────────────────────────────────────────
   const filteredPlaylists = playlists.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -456,17 +512,27 @@ export function PlaylistSidebar({ activePlaylistId, onSelectPlaylist }) {
               </div>
             )
           ) : (
-            filteredPlaylists.map((playlist) => (
-              <PlaylistItem
-                key={playlist.id}
-                playlist={playlist}
-                collapsed={collapsed}
-                isActive={activePlaylistId === playlist.id}
-                onSelect={onSelectPlaylist}
-                onEdit={setEditingPlaylist}
-                onDelete={setDeletingPlaylist}
-              />
-            ))
+            filteredPlaylists.map((playlist) => {
+              const playlistSongIds = (playlist.songs || []).map((s) => s.id ?? s);
+              const isCurrentlyPlaying =
+                isPlaying &&
+                currentSong != null &&
+                activePlaylistId === playlist.id &&
+                playlistSongIds.includes(currentSong.id);
+              return (
+                <PlaylistItem
+                  key={playlist.id}
+                  playlist={playlist}
+                  collapsed={collapsed}
+                  isActive={activePlaylistId === playlist.id}
+                  onSelect={onSelectPlaylist}
+                  onEdit={setEditingPlaylist}
+                  onDelete={setDeletingPlaylist}
+                  onPlay={handlePlayPlaylist}
+                  isCurrentlyPlaying={isCurrentlyPlaying}
+                />
+              );
+            })
           )}
         </div>
 

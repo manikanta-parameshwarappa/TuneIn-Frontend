@@ -24,6 +24,9 @@
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 20px;
+  /* ── Music player ── */
+  --player-height:    90px;
+  --navbar-height:    72px;
 }
 
 html {

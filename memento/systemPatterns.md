@@ -91,14 +91,15 @@ Every component owns its styles via a co-located `.module.css` file. Global toke
 ## Folder Structure
 ```
 src/
-  context/        AuthContext.jsx
+  context/        AuthContext.jsx  PlayerContext.jsx
   hooks/          useAuth.js
-  services/       axiosInstance.js  authService.js
+  services/       axiosInstance.js  authService.js  playlistService.js  songService.js
   routes/         ProtectedRoute.jsx  PublicOnlyRoute.jsx  AdminRoute.jsx
   components/
     Navbar/            Navbar.jsx  Navbar.module.css
     AuthForm/          AuthForm.module.css  (shared by Login & Signup)
-    AddArtistDrawer/   AddArtistDrawer.jsx  AddArtistDrawer.module.css
+    MusicPlayer/       MusicPlayer.jsx  MusicPlayer.module.css  QueuePanel.jsx  QueuePanel.module.css
+    PlaylistSidebar/   PlaylistSidebar.jsx  PlaylistSidebar.module.css
   pages/
     Home/              Home.jsx  Home.module.css
     Login/             Login.jsx

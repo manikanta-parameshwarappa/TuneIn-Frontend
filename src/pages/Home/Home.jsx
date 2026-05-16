@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { usePlayer } from "../../context/PlayerContext";
 import { PlaylistSidebar } from "../../components/PlaylistSidebar/PlaylistSidebar";
 import { fetchSongs } from "../../services/songService";
 import { fetchAlbums } from "../../services/albumService";
@@ -31,9 +33,18 @@ function IconPlay() {
   );
 }
 
-function IconHeart() {
+function IconPause() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+    </svg>
+  );
+}
+
+function IconHeart({ filled }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
@@ -86,6 +97,19 @@ function IconTrendingUp() {
   );
 }
 
+function IconAddToQueue() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" />
+      <line x1="3" y1="12" x2="3.01" y2="12" />
+      <line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  );
+}
+
 // ── Skeleton loaders ─────────────────────────────────────────────────────────
 function AlbumCardSkeleton() {
   return (
@@ -122,9 +146,23 @@ function SongRowSkeleton() {
 }
 
 // ── AlbumCard ────────────────────────────────────────────────────────────────
-function AlbumCard({ album }) {
+function AlbumCard({ album, songs }) {
   const [hovered, setHovered] = useState(false);
+  const { playSong, playQueue, currentSong, isPlaying, togglePlay } = usePlayer();
   const year = album.releasedDate ? new Date(album.releasedDate).getFullYear() : null;
+
+  // Find songs belonging to this album
+  const albumSongs = songs.filter((s) => s.albumId === album.id || s.album?.id === album.id);
+  const isCurrentAlbum = albumSongs.some((s) => s.id === currentSong?.id);
+
+  const handlePlay = (e) => {
+    e.stopPropagation();
+    if (isCurrentAlbum) {
+      togglePlay();
+    } else if (albumSongs.length > 0) {
+      playQueue(albumSongs, 0);
+    }
+  };
 
   return (
     <div
@@ -141,8 +179,12 @@ function AlbumCard({ album }) {
           </div>
         )}
         <div className={`${styles.albumPlayOverlay} ${hovered ? styles.albumPlayOverlayVisible : ""}`}>
-          <button className={styles.albumPlayBtn} aria-label={`Play ${album.name}`}>
-            <IconPlay />
+          <button
+            className={`${styles.albumPlayBtn} ${isCurrentAlbum && isPlaying ? styles.albumPlayBtnActive : ""}`}
+            aria-label={`Play ${album.name}`}
+            onClick={handlePlay}
+          >
+            {isCurrentAlbum && isPlaying ? <IconPause /> : <IconPlay />}
           </button>
         </div>
       </div>
@@ -159,11 +201,27 @@ function AlbumCard({ album }) {
 }
 
 // ── ArtistCard ───────────────────────────────────────────────────────────────
-function ArtistCard({ artist }) {
+function ArtistCard({ artist, songs }) {
   const [hovered, setHovered] = useState(false);
+  const { playQueue, currentSong, isPlaying, togglePlay } = usePlayer();
   const initials = artist.name
     ? artist.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
     : "?";
+
+  // Find songs by this artist
+  const artistSongs = songs.filter((s) =>
+    s.artists?.some((a) => a.id === artist.id)
+  );
+  const isCurrentArtist = artistSongs.some((s) => s.id === currentSong?.id);
+
+  const handlePlay = (e) => {
+    e.stopPropagation();
+    if (isCurrentArtist) {
+      togglePlay();
+    } else if (artistSongs.length > 0) {
+      playQueue(artistSongs, 0);
+    }
+  };
 
   return (
     <div
@@ -180,8 +238,12 @@ function ArtistCard({ artist }) {
           </div>
         )}
         <div className={`${styles.artistPlayOverlay} ${hovered ? styles.artistPlayOverlayVisible : ""}`}>
-          <button className={styles.artistPlayBtn} aria-label={`Play ${artist.name}`}>
-            <IconPlay />
+          <button
+            className={styles.artistPlayBtn}
+            aria-label={`Play ${artist.name}`}
+            onClick={handlePlay}
+          >
+            {isCurrentArtist && isPlaying ? <IconPause /> : <IconPlay />}
           </button>
         </div>
       </div>
@@ -192,24 +254,44 @@ function ArtistCard({ artist }) {
 }
 
 // ── SongRow ──────────────────────────────────────────────────────────────────
-function SongRow({ song, index, isPlaying, onPlay }) {
+function SongRow({ song, index, allSongs }) {
   const [hovered, setHovered] = useState(false);
+  const { playSong, currentSong, isPlaying, togglePlay, addToQueue } = usePlayer();
   const artistNames = song.artists?.map((a) => a.name).join(", ") || "Unknown Artist";
+
+  const isCurrent = currentSong?.id === song.id;
+  const isThisPlaying = isCurrent && isPlaying;
+
+  const handlePlay = () => {
+    if (isCurrent) {
+      togglePlay();
+    } else {
+      playSong(song, allSongs);
+    }
+  };
+
+  const handleAddToQueue = (e) => {
+    e.stopPropagation();
+    addToQueue(song);
+  };
 
   return (
     <div
-      className={`${styles.songRow} ${isPlaying ? styles.songRowPlaying : ""}`}
+      className={`${styles.songRow} ${isCurrent ? styles.songRowPlaying : ""}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={() => onPlay?.(song)}
+      onClick={handlePlay}
     >
       <div className={styles.songRowIndex}>
-        {hovered || isPlaying ? (
-          <button className={styles.songRowPlayBtn} aria-label={`Play ${song.name}`}>
-            <IconPlay />
+        {hovered || isCurrent ? (
+          <button
+            className={styles.songRowPlayBtn}
+            aria-label={isThisPlaying ? `Pause ${song.name}` : `Play ${song.name}`}
+          >
+            {isThisPlaying ? <IconPause /> : <IconPlay />}
           </button>
         ) : (
-          <span className={`${styles.songRowNum} ${isPlaying ? styles.songRowNumPlaying : ""}`}>
+          <span className={`${styles.songRowNum} ${isCurrent ? styles.songRowNumPlaying : ""}`}>
             {index + 1}
           </span>
         )}
@@ -226,7 +308,7 @@ function SongRow({ song, index, isPlaying, onPlay }) {
       </div>
 
       <div className={styles.songRowInfo}>
-        <span className={`${styles.songRowName} ${isPlaying ? styles.songRowNamePlaying : ""}`}>
+        <span className={`${styles.songRowName} ${isCurrent ? styles.songRowNamePlaying : ""}`}>
           {song.name}
         </span>
         <span className={styles.songRowArtist}>{artistNames}</span>
@@ -235,6 +317,14 @@ function SongRow({ song, index, isPlaying, onPlay }) {
       <span className={styles.songRowAlbum}>{song.album?.name || "—"}</span>
 
       <div className={styles.songRowActions}>
+        <button
+          className={`${styles.songRowQueueBtn} ${hovered ? styles.songRowQueueBtnVisible : ""}`}
+          aria-label="Add to queue"
+          title="Add to queue"
+          onClick={handleAddToQueue}
+        >
+          <IconAddToQueue />
+        </button>
         <button className={styles.songRowLike} aria-label="Like song">
           <IconHeart />
         </button>
@@ -274,8 +364,10 @@ function QuickStatCard({ label, value, color }) {
 }
 
 // ── Featured hero card ───────────────────────────────────────────────────────
-function FeaturedCard({ item, type }) {
+function FeaturedCard({ item, type, songs }) {
+  const { playSong, playQueue, currentSong, isPlaying, togglePlay } = usePlayer();
   if (!item) return null;
+
   const coverUrl = item.avatarUrl || item.album?.coverUrl || null;
   const subtitle =
     type === "album"
@@ -284,8 +376,31 @@ function FeaturedCard({ item, type }) {
       ? "Artist"
       : item.artists?.map((a) => a.name).join(", ") || "Track";
 
+  const handlePlay = () => {
+    if (type === "track") {
+      if (currentSong?.id === item.id) {
+        togglePlay();
+      } else {
+        playSong(item, songs);
+      }
+    } else if (type === "album") {
+      const albumSongs = songs.filter(
+        (s) => s.albumId === item.id || s.album?.id === item.id
+      );
+      if (albumSongs.length) playQueue(albumSongs, 0);
+    } else if (type === "artist") {
+      const artistSongs = songs.filter((s) =>
+        s.artists?.some((a) => a.id === item.id)
+      );
+      if (artistSongs.length) playQueue(artistSongs, 0);
+    }
+  };
+
+  const isCurrent = type === "track" && currentSong?.id === item.id;
+  const isThisPlaying = isCurrent && isPlaying;
+
   return (
-    <div className={styles.featuredCard}>
+    <div className={styles.featuredCard} onClick={handlePlay}>
       <div className={styles.featuredCover}>
         {coverUrl ? (
           <img src={coverUrl} alt={item.name} className={styles.featuredCoverImg} />
@@ -300,7 +415,8 @@ function FeaturedCard({ item, type }) {
         <h3 className={styles.featuredName}>{item.name}</h3>
         <p className={styles.featuredSubtitle}>{subtitle}</p>
         <button className={styles.featuredPlayBtn}>
-          <IconPlay /> Play Now
+          {isThisPlaying ? <IconPause /> : <IconPlay />}{" "}
+          {isThisPlaying ? "Pause" : "Play Now"}
         </button>
       </div>
     </div>
@@ -310,18 +426,17 @@ function FeaturedCard({ item, type }) {
 // ── Main Home component ──────────────────────────────────────────────────────
 export function Home() {
   const { isAuthenticated, user } = useAuth();
+  const { currentSong } = usePlayer();
 
   const [songs, setSongs] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activePlaylistId, setActivePlaylistId] = useState(null);
-  const [playingSongId, setPlayingSongId] = useState(null);
   const [showAllSongs, setShowAllSongs] = useState(false);
   const [showAllAlbums, setShowAllAlbums] = useState(false);
 
   useEffect(() => {
-    // Only fetch data for authenticated users
     if (!isAuthenticated) {
       setLoading(false);
       return;
@@ -330,7 +445,6 @@ export function Home() {
     async function load() {
       setLoading(true);
       try {
-        // Use allSettled so a failing endpoint never blocks the others
         const [songsResult, albumsResult, artistsResult] = await Promise.allSettled([
           fetchSongs(),
           fetchAlbums(),
@@ -341,7 +455,7 @@ export function Home() {
         setAlbums(albumsResult.status  === "fulfilled" ? albumsResult.value  : []);
         setArtists(artistsResult.status === "fulfilled" ? artistsResult.value : []);
       } catch {
-        // safety net — keep empty arrays, no banner needed
+        // safety net
       } finally {
         setLoading(false);
       }
@@ -349,15 +463,16 @@ export function Home() {
     load();
   }, [isAuthenticated]);
 
-  const handlePlaySong = useCallback((song) => {
-    setPlayingSongId((prev) => (prev === song.id ? null : song.id));
-  }, []);
-
   const displayedSongs = showAllSongs ? songs : songs.slice(0, 10);
   const displayedAlbums = showAllAlbums ? albums : albums.slice(0, 8);
 
   const featuredAlbum = albums[0] || null;
   const featuredArtist = artists[0] || null;
+
+  // Dynamic bottom padding to not overlap with player bar
+  const mainStyle = currentSong
+    ? { paddingBottom: "var(--player-height, 90px)" }
+    : {};
 
   // ── Public (unauthenticated) view ────────────────────────────────────────
   if (!isAuthenticated) {
@@ -399,7 +514,7 @@ export function Home() {
               <div className={styles.floatCardCover} style={{ background: "linear-gradient(135deg,#6d28d9,#8b5cf6)" }} />
               <div className={styles.floatCardInfo}>
                 <span>Late Night Vibes</span>
-                <span>Chill & Relax</span>
+                <span>Chill &amp; Relax</span>
               </div>
             </div>
             <div className={`${styles.floatCard} ${styles.floatCard3}`}>
@@ -441,11 +556,12 @@ export function Home() {
 
   // ── Authenticated view ───────────────────────────────────────────────────
   return (
-    <div className={styles.appLayout}>
+    <div className={styles.appLayout} style={currentSong ? { height: `calc(100vh - 72px - 90px)` } : {}}>
       {/* Sidebar */}
       <PlaylistSidebar
         activePlaylistId={activePlaylistId}
         onSelectPlaylist={(p) => setActivePlaylistId(p?.id ?? null)}
+        songs={songs}
       />
 
       {/* Main content */}
@@ -483,9 +599,9 @@ export function Home() {
               title="Featured"
             />
             <div className={styles.featuredRow}>
-              {featuredAlbum && <FeaturedCard item={featuredAlbum} type="album" />}
-              {featuredArtist && <FeaturedCard item={featuredArtist} type="artist" />}
-              {songs[0] && <FeaturedCard item={songs[0]} type="track" />}
+              {featuredAlbum && <FeaturedCard item={featuredAlbum} type="album" songs={songs} />}
+              {featuredArtist && <FeaturedCard item={featuredArtist} type="artist" songs={songs} />}
+              {songs[0] && <FeaturedCard item={songs[0]} type="track" songs={songs} />}
             </div>
           </section>
         )}
@@ -520,7 +636,9 @@ export function Home() {
             {loading
               ? [...Array(8)].map((_, i) => <AlbumCardSkeleton key={i} />)
               : displayedAlbums.length > 0
-              ? displayedAlbums.map((album) => <AlbumCard key={album.id} album={album} />)
+              ? displayedAlbums.map((album) => (
+                  <AlbumCard key={album.id} album={album} songs={songs} />
+                ))
               : (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}><IconDisc /></div>
@@ -542,7 +660,9 @@ export function Home() {
             {loading
               ? [...Array(7)].map((_, i) => <ArtistCardSkeleton key={i} />)
               : artists.length > 0
-              ? artists.slice(0, 10).map((artist) => <ArtistCard key={artist.id} artist={artist} />)
+              ? artists.slice(0, 10).map((artist) => (
+                  <ArtistCard key={artist.id} artist={artist} songs={songs} />
+                ))
               : (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}><IconMic /></div>
@@ -588,8 +708,7 @@ export function Home() {
                     key={song.id}
                     song={song}
                     index={i}
-                    isPlaying={playingSongId === song.id}
-                    onPlay={handlePlaySong}
+                    allSongs={songs}
                   />
                 ))
               : (
