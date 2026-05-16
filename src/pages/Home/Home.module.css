@@ -764,6 +764,15 @@
   opacity: 1;
 }
 
+.songRowLikeActive {
+  opacity: 1 !important;
+  color: #f87171;
+}
+
+.songRowLikeActive:hover {
+  color: #ef4444;
+}
+
 .songRowLike:hover {
   color: #e05c5c;
   transform: scale(1.15);

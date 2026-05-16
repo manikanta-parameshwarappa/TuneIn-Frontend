@@ -40,6 +40,7 @@ function normalizePlaylistSong(raw) {
           name: a.user?.name ?? a.name ?? "Unknown Artist",
         }))
       : [],
+    liked: raw.liked ?? false,
   };
 }
 

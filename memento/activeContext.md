@@ -71,12 +71,11 @@ Slide-in panel from right (360px wide, sits above player bar):
 - [`src/index.css`](../src/index.css): Added `--player-height: 90px`, `--navbar-height: 72px` CSS variables
 
 ## Next Steps
-1. Add `POST /playlists/:id/playlist_songs` Rails route and controller action (currently uses `playlist_songs` nested resource)
-2. Wire "Add to Playlist" modal — let users add songs directly from the player or song rows
-3. Like/heart functionality — wire `POST /songs/:id/likes`
-4. Artist / Album detail pages (click-through from Home)
-5. Search page
-6. Mini-player waveform visualization (optional enhancement)
+- Search page
+- Artist / Album detail pages (click-through from Home grid)
+- Toast notification system
+- Error boundary component
+- Mini-player waveform visualization (optional)
 
 ## Active Decisions
 - Player bar is `position: fixed` at `bottom: 0` — layout height is adjusted dynamically when a song loads

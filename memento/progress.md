@@ -1,6 +1,6 @@
 # Progress
 
-## Status: Foundation + Admin + Homepage + **Music Player (End-to-End)** ✅
+## Status: Foundation + Admin + Homepage + Music Player + **Like Songs + Playlists (End-to-End)** ✅
 
 ## What Works
 - [x] **Project scaffolding** — Vite + React 19, ESLint, folder structure
@@ -38,10 +38,24 @@
 - [x] **Global dark CSS** — design tokens, scrollbar, selection, spinner, focus ring
 - [x] **playlistService** — fully fixed endpoints: `fetchPlaylists`, `createPlaylist`, `updatePlaylist`, `deletePlaylist`, `addSongToPlaylist` (`playlist_songs` route), `removeSongFromPlaylist`, `fetchPlaylist`
 
+- [x] **Like/heart per song** (NEW):
+  - [x] Backend `LikesController` — toggle (`POST /songs/:id/likes`), check (`GET /songs/:id/likes`), all liked songs (`GET /liked_songs`)
+  - [x] Backend unique index on `likes(user_id, song_id)` preventing duplicate likes
+  - [x] `songs#index` returns `"liked": true/false` per song (pre-loaded Set, no N+1)
+  - [x] Frontend `likeService.js` — `toggleLike`, `checkLike`, `fetchLikedSongs`
+  - [x] Optimistic like toggle in `SongRow` (Home) — flips immediately, rolls back on API error
+  - [x] Like button in `PlaylistSongRow` (PlaylistDetail) — same optimistic approach
+- [x] **Add songs to playlist** (NEW):
+  - [x] Backend `PlaylistSongsController` — `create` (add) and `destroy` (remove by song_id)
+  - [x] `PlaylistsController` and `PlaylistSongsController` return full song data with `audio_url` + album cover
+  - [x] Frontend `AddToPlaylistModal` — lists user's playlists, already-added detection, spinner on add
+  - [x] Add-to-playlist button on every `SongRow` opens the modal
+- [x] **Playlist detail view** (NEW):
+  - [x] `PlaylistDetail` page — hero (cover/name/count), Play All, song rows with like/remove/queue
+  - [x] Clicking a playlist in `PlaylistSidebar` swaps main content to `PlaylistDetail` (state-based, no route change)
+  - [x] Back button returns to home feed
+
 ## What's Left to Build
-- [ ] Like/heart functionality — wire `POST /songs/:id/likes`
-- [ ] "Add to Playlist" modal (from song row / player)
-- [ ] Library / playlist detail pages (click-through from sidebar)
 - [ ] Search page
 - [ ] Artist / Album detail pages (click-through from Home grid)
 - [ ] Toast notification system

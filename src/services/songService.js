@@ -65,6 +65,7 @@ function normalizeSong(raw) {
       ? { id: album.id, name: album.name, coverUrl: albumCoverUrl }
       : null,
     audioUrl,
+    liked: raw.liked ?? false,
   };
 }
 

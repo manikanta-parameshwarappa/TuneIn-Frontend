@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { PlayerProvider } from "./context/PlayerContext";
+import { LikeProvider } from "./context/LikeContext";
 import { Navbar } from "./components/Navbar/Navbar";
 import { MusicPlayer } from "./components/MusicPlayer/MusicPlayer";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
@@ -16,45 +17,49 @@ import { Artists } from "./pages/Artists/Artists";
 import { Albums } from "./pages/Albums/Albums";
 import { Songs } from "./pages/Songs/Songs";
 import { Profile } from "./pages/Profile/Profile";
+import { PlaylistPage } from "./pages/PlaylistDetail/PlaylistPage";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <PlayerProvider>
-          <div className="app-shell">
-            <Navbar />
-            <Routes>
-              {/* Always-public route */}
-              <Route path="/" element={<Home />} />
+          <LikeProvider>
+            <div className="app-shell">
+              <Navbar />
+              <Routes>
+                {/* Always-public route */}
+                <Route path="/" element={<Home />} />
 
-              {/* Guest-only routes — authenticated users are redirected to "/" */}
-              <Route element={<PublicOnlyRoute />}>
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-              </Route>
+                {/* Guest-only routes — authenticated users are redirected to "/" */}
+                <Route element={<PublicOnlyRoute />}>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                </Route>
 
-              {/* Protected routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/profile" element={<Profile />} />
-              </Route>
+                {/* Protected routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/playlist/:id" element={<PlaylistPage />} />
+                </Route>
 
-              {/* Admin-only routes — requires authenticated user with role="admin" */}
-              <Route element={<AdminRoute />}>
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/artists" element={<Artists />} />
-                <Route path="/admin/albums" element={<Albums />} />
-                <Route path="/admin/songs" element={<Songs />} />
-              </Route>
+                {/* Admin-only routes — requires authenticated user with role="admin" */}
+                <Route element={<AdminRoute />}>
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/artists" element={<Artists />} />
+                  <Route path="/admin/albums" element={<Albums />} />
+                  <Route path="/admin/songs" element={<Songs />} />
+                </Route>
 
-              {/* Catch-all */}
-              <Route path="/403" element={<NotFound variant="forbidden" />} />
-              <Route path="/404" element={<NotFound />} />
-              <Route path="*" element={<Navigate to="/404" replace />} />
-            </Routes>
-            {/* Global persistent music player — renders only when a song is loaded */}
-            <MusicPlayer />
-          </div>
+                {/* Catch-all */}
+                <Route path="/403" element={<NotFound variant="forbidden" />} />
+                <Route path="/404" element={<NotFound />} />
+                <Route path="*" element={<Navigate to="/404" replace />} />
+              </Routes>
+              {/* Global persistent music player — renders only when a song is loaded */}
+              <MusicPlayer />
+            </div>
+          </LikeProvider>
         </PlayerProvider>
       </AuthProvider>
     </BrowserRouter>
